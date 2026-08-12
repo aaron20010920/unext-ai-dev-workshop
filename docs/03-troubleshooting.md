@@ -6,14 +6,26 @@
 
 ## Vercel 部署失敗
 
-### `No Next.js version detected` / `Couldn't find package.json`
+### 部署顯示成功，但打開網址是 `404: NOT_FOUND`
 
-**原因**：Root Directory 沒設成 `starter-kit`。
+**這是最常見的一個，而且它不會報錯 —— 所以最難查。**
 
-**修**：Vercel 專案 → **Settings** → **General** → **Root Directory** → 改成 `starter-kit` →
+**原因**：Root Directory 沒設成 `starter-kit`。Vercel 在 repo 根目錄找不到網站，
+就把根目錄當一堆靜態檔案部署掉，然後跟你說成功。
+
+**修**：Vercel 專案 → **Settings** → **General** → **Root Directory** → 填 `starter-kit` →
 存檔 → 回 **Deployments** → 最新那筆右邊 **⋯** → **Redeploy**。
 
-> 這是最常見的一個，九成的部署失敗都是它。
+> 實測過：設錯的時候 CLI 跟畫面都顯示 Production 部署完成、也給你網址，
+> 打開卻是一頁純文字的 `NOT_FOUND`。**部署成功不等於網站活著** ——
+> 這跟「AI 說它做好了不等於它做對了」是同一件事，只是換到基礎設施這一層。
+
+### `Command "npm install" exited with 254`
+
+同一個原因（Root Directory 沒設對），只是這次它在安裝階段就死了 ——
+根目錄沒有 `package.json`，`npm install` 無事可做而報錯。
+
+修法同上。
 
 ### `Module not found` / build 中途紅字
 
@@ -117,6 +129,90 @@ Fork 過來的 repo，GitHub 預設會停用 Actions。
 
 **修**：你的 repo → **Actions** 分頁 → 如果有一個綠色按鈕
 「I understand my workflows, go ahead and enable them」→ 點它。
+
+---
+
+## Codex 說我到使用上限了
+
+ChatGPT **免費方案的 Codex 大約每天 10 個 task**（一個 task = 它完整跑一輪：讀你的專案、改檔、開 PR），
+而且本機與雲端共用同一個五小時窗口。反覆試錯很容易在一個下午用完。
+
+**省著用的方法**：一次講清楚一件事（見下面「一次只改一件事」），
+不要用「幫我看看哪裡怪」這種讓它到處翻的問法 —— 那也算一個 task。
+
+### Plan B：不用 Codex 也能改（完全沒有 task 限制）
+
+改用**普通對話** + **GitHub 網頁編輯**，一樣不必安裝任何東西：
+
+1. 打開 [chatgpt.com](https://chatgpt.com) 或 [claude.ai](https://claude.ai) 開一般對話（不是 Codex）
+2. 貼上你要改的那個檔案**全文** + 你的需求，請它「回我完整的檔案內容，不要只給片段」
+3. 複製它給的完整內容
+4. 回到你的 GitHub repo → 點進 `starter-kit/app/page.jsx` → 右上角鉛筆 ✏️
+5. 全選原本的內容、貼上新的 → 頁面最下面 **Commit changes**
+6. Vercel 會自動重新部署，30 秒後重新整理你的網址
+
+> 這條路唯一的差別是「它看不到你的專案，所以你要自己把檔案貼給它」。
+> 普通對話的額度比 Codex task 寬鬆得多，撞到上限就走這條。
+
+---
+
+## AI 回「Groq 回了 429」
+
+**免費方案每把 key**：每分鐘 30 次請求、**每分鐘 12,000 tokens**、每天 100,000 tokens。
+
+一次問答大約用掉 1,400 tokens，所以**一分鐘內連打 8 次以上就會撞到**。
+自己操作不會這麼快，會撞到通常是：
+
+- 連續猛按送出 → 等 60 秒就好
+- 很多人同時打**同一個網站**（例如大家一起去打講師的示範網址）→ 那把 key 是共用的，會一起卡
+
+**修法**：等一分鐘。不是你的 code 壞了，也不用改任何東西。
+
+> 每個人用自己的 key，額度就是自己的 —— 這也是為什麼一開始要你各自申請一把。
+
+---
+
+## 接了 Supabase 之後：存進去了但讀不回來
+
+九成是 **RLS**（Row Level Security）。它是 Supabase 的權限機制，**預設是關的**，
+而你一旦打開、卻沒寫規則，就會變成「全部擋住」。
+
+三種症狀對應三種狀況：
+
+| 你看到 | 實際狀況 | 怎麼修 |
+|---|---|---|
+| 寫得進去、讀回來是空陣列 `[]` | RLS 開了，但沒有 select 的 policy | 加一條 select policy |
+| `new row violates row-level security policy` | RLS 開了，但沒有 insert 的 policy | 加一條 insert policy |
+| 什麼都正常，讀寫都通 | 🔴 **RLS 沒開** —— 這不是好事，見下面 | 立刻開起來 |
+
+在 Supabase 後台 → **SQL Editor** 跑：
+
+```sql
+-- 建完表就該跑這行
+alter table history enable row level security;
+
+-- 然後至少給一條規則，否則連你自己也讀不到
+create policy "允許寫入" on history
+  for insert to anon with check (true);
+
+create policy "允許讀取" on history
+  for select to anon using (true);
+```
+
+> ⚠️ 上面這兩條 policy 是「**誰都可以讀、誰都可以寫**」——
+> 對今天的練習夠用，但那表示任何人都能看到別人存的東西。
+> 真的要分使用者，policy 要改成比對 `auth.uid()`，那需要先做登入。
+
+### 🔴 為什麼「都正常」反而是問題
+
+你的 `NEXT_PUBLIC_SUPABASE_ANON_KEY` 開頭是 `NEXT_PUBLIC_` —— 它在前端，
+**任何人打開瀏覽器的原始碼就看得到**。這是 Supabase 的設計，不是你設錯。
+
+所以安全邊界不在那把 key，而在 RLS。沒開 RLS 的意思是：
+拿到你網址的人可以讀走整張表、也可以清空它。
+
+**驗證方法**：開一個無痕視窗（沒有你的登入狀態），試著讀你的資料。
+讀得到 = RLS 沒生效。
 
 ---
 

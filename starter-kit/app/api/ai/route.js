@@ -5,6 +5,14 @@
 // 為什麼不能讓前端直接打 Groq：API key 會被所有人看到（打開瀏覽器的原始碼就有）
 // 所以 key 只放在這一層（伺服器端），前端永遠看不到它
 
+// 👇 這就是你的 AI 的人格與規則。改這裡 = 換一個助手
+//
+// 為什麼放在這個檔（伺服器端）而不是前端：前端的東西任何人都看得到、也改得動。
+// 人格放前端的話，別人可以繞過你的規則，用你的 key 去問任何事
+const SYSTEM_PROMPT = `你是一位友善的助理。
+用繁體中文回答，講重點，不要長篇大論。
+不確定的事情老實說不知道，不要編。`;
+
 // 一次最多接受多長的輸入
 //
 // 為什麼要有這行：沒有它，任何人都能貼 10 萬字進來，一次就把你的免費額度燒一大塊。
@@ -22,7 +30,7 @@ const MAX_INPUT_CHARS = 4000;
 //   3. 用量上限 quota — 一天最多花多少
 export async function POST(request) {
   // 1. 拿到前端送來的東西
-  const { input, systemPrompt } = await request.json();
+  const { input } = await request.json();
 
   if (!input || !input.trim()) {
     return Response.json({ error: '沒有輸入內容' }, { status: 400 });
@@ -60,7 +68,7 @@ export async function POST(request) {
           {
             role: 'system',
             // 這段就是你的「AI 助手人格」。改這裡 = 換一個助手
-            content: systemPrompt || '你是一位友善的助理。用繁體中文回答，不要用句號結尾的長篇大論，講重點。',
+            content: SYSTEM_PROMPT,
           },
           { role: 'user', content: input },
         ],

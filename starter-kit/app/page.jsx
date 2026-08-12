@@ -8,9 +8,8 @@
 import { useState } from 'react';
 
 // 👇 改這兩行就換了一個應用（先改這裡，再改介面）
+// AI 的人格不在這裡 —— 它在 app/api/ai/route.js 的 SYSTEM_PROMPT（伺服器端）
 const APP_TITLE = '我的第一個 AI 應用';
-const SYSTEM_PROMPT =
-  '你是一位友善的助理。用繁體中文回答，講重點，不要長篇大論';
 const PLACEHOLDER = '在這裡輸入你要問的東西⋯⋯';
 
 export default function Home() {
@@ -29,7 +28,7 @@ export default function Home() {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input, systemPrompt: SYSTEM_PROMPT }),
+        body: JSON.stringify({ input }),
       });
       const data = await res.json();
       if (data.error) setError(data.error);
@@ -76,7 +75,7 @@ export default function Home() {
       <footer style={S.footer}>
         改這個頁面：把 <code>app/page.jsx</code> 貼給 Codex，跟它說你要什麼
         <br />
-        換 AI 的個性：改上面的 <code>SYSTEM_PROMPT</code>
+        換 AI 的個性：改 <code>app/api/ai/route.js</code> 的 <code>SYSTEM_PROMPT</code>
       </footer>
     </main>
   );
