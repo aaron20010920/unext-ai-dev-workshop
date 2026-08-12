@@ -132,6 +132,28 @@ Fork 過來的 repo，GitHub 預設會停用 Actions。
 
 ---
 
+## 公司筆電裝不了 Node / npm 被封鎖
+
+CLI 那條路走不通的話，還有一條不需要 Git、也不需要 CLI 的：
+**[Vercel Drop](https://vercel.com/docs/drop)** —— 把資料夾直接拖到 `vercel.com/drop` 就部署。
+
+1. 用 Codex 桌面版改你電腦上的 `starter-kit`（這步不需要 CLI）
+2. 打開 [vercel.com/drop](https://vercel.com/drop)，把 **`starter-kit` 這個資料夾**拖進去
+3. 取專案名字 → Deploy → 拿到網址
+4. 網址會說「還沒設定 GROQ_API_KEY」→ 到該專案 **Settings → Environment Variables** 加上
+5. 加完要**再拖一次**（Drop 沒有 redeploy，重新部署就是重新拖）
+
+**代價要知道**：這條路沒有 Git 連動，所以
+
+- 改完不會自動部署 —— 每次改都要重拖一次
+- 沒有 CI（GitHub Actions 那個綠勾勾不會跑）
+- 拿不到「push 就上線」的體驗，而那是今天最值得帶走的一段
+
+> ⚠️ 這條路我（講師）**沒有實跑過**，是照 Vercel 官方文件寫的。
+> 真的要走請舉手，我陪你走第一次。
+
+---
+
 ## Codex 說我到使用上限了
 
 ChatGPT **免費方案的 Codex 大約每天 10 個 task**（一個 task = 它完整跑一輪：讀你的專案、改檔、開 PR），
