@@ -13,7 +13,7 @@
 | GitHub 帳號 | [github.com](https://github.com) |
 | Vercel 帳號 | [vercel.com](https://vercel.com) → Continue with **GitHub** |
 | Groq API key | [console.groq.com](https://console.groq.com) → API Keys → Create（**只出現一次，馬上複製**） |
-| Node.js | [nodejs.org](https://nodejs.org) 下載 LTS（`node -v` 有版本號就行了） |
+| Node.js · git · gh · vercel | **不用自己裝** → 用 [Prompt 0](docs/02-prompts.md#prompt-0--叫-codex-把開發環境裝好不用開終端機) 叫 Codex 裝，它會印版本號給你確認 |
 | **ChatGPT 桌面版** | [chatgpt.com/download](https://chatgpt.com/download)（Codex 在裡面，**建議 Plus 方案**） |
 
 > ⚠️ Groq 那串等於你的密碼。**不要貼進 GitHub、不要傳給同學。** 它只會進 Vercel 的環境變數。

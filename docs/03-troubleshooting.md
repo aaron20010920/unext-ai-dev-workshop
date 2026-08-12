@@ -134,23 +134,41 @@ Fork 過來的 repo，GitHub 預設會停用 Actions。
 
 ## 公司筆電裝不了 Node / npm 被封鎖
 
-CLI 那條路走不通的話，還有一條不需要 Git、也不需要 CLI 的：
-**[Vercel Drop](https://vercel.com/docs/drop)** —— 把資料夾直接拖到 `vercel.com/drop` 就部署。
+CLI 那條路走不通不代表今天做不完。有兩條**完全不用在自己電腦上裝東西**的路，
+照順序試：
 
-1. 用 Codex 桌面版改你電腦上的 `starter-kit`（這步不需要 CLI）
+### 保底 ①：Vercel 網頁 Import（推薦，還保得住「push 就上線」）
+
+1. 在 GitHub 網頁 **Fork** 課程 repo（這步本來就在網頁做）
+2. 到 [vercel.com/new](https://vercel.com/new) → **Import Git Repository** → 選你 fork 的那個
+3. 🔴 **Root Directory 填 `starter-kit`**（漏了就會部署成一頁 404，見本檔第一節）
+4. Environment Variables 加 `GROQ_API_KEY` → **Deploy**
+5. 之後改 code：用 Codex 桌面版改，或直接在 GitHub 網頁上編輯 → 存檔就自動重新部署
+
+這條路你的電腦只需要瀏覽器。build 是 Vercel 在雲端跑的，
+所以「裝不了 Node」完全不影響。
+
+### 保底 ②：Vercel Drop（連 GitHub 都不能用才走）
+
+把資料夾直接拖到 [vercel.com/drop](https://vercel.com/drop)。
+
+官方文件寫得很清楚：Drop **不只吃靜態檔，framework 專案它會自己偵測並 build**
+—— 所以 Next.js 跟 `/api/ai` 都會正常活著。
+
+1. 用 Codex 桌面版改你電腦上的 `starter-kit`（改檔案不需要 npm）
 2. 打開 [vercel.com/drop](https://vercel.com/drop)，把 **`starter-kit` 這個資料夾**拖進去
 3. 取專案名字 → Deploy → 拿到網址
 4. 網址會說「還沒設定 GROQ_API_KEY」→ 到該專案 **Settings → Environment Variables** 加上
-5. 加完要**再拖一次**（Drop 沒有 redeploy，重新部署就是重新拖）
+5. 加完到 **Deployments** → 最新那筆 **⋯ → Redeploy**（env var 要重新部署才生效）
 
-**代價要知道**：這條路沒有 Git 連動，所以
+**代價要知道（官方列的限制）**：
 
-- 改完不會自動部署 —— 每次改都要重拖一次
-- 沒有 CI（GitHub Actions 那個綠勾勾不會跑）
-- 拿不到「push 就上線」的體驗，而那是今天最值得帶走的一段
+- **每拖一次都建一個新專案** —— 不能拖回同一個，所以第 5 步要用 dashboard 的 Redeploy，不要重拖
+- **沒有 Git 連動** —— push 不會觸發部署，也沒有 GitHub Actions 那個綠勾勾
+- 檔案從瀏覽器上傳，資料夾大 + 網路慢會等很久
 
-> ⚠️ 這條路我（講師）**沒有實跑過**，是照 Vercel 官方文件寫的。
-> 真的要走請舉手，我陪你走第一次。
+> ⚠️ 這條路我（講師）**沒有實跑過**，是照 Vercel 官方文件寫的（2026-06-16 版）。
+> 真的要走請舉手，我陪你走第一次 —— 但先試保底 ①。
 
 ---
 
