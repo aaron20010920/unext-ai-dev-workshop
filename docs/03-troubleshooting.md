@@ -120,6 +120,50 @@ Fork 過來的 repo，GitHub 預設會停用 Actions。
 
 ---
 
+## 接了 Supabase 之後：存進去了但讀不回來
+
+九成是 **RLS**（Row Level Security）。它是 Supabase 的權限機制，**預設是關的**，
+而你一旦打開、卻沒寫規則，就會變成「全部擋住」。
+
+三種症狀對應三種狀況：
+
+| 你看到 | 實際狀況 | 怎麼修 |
+|---|---|---|
+| 寫得進去、讀回來是空陣列 `[]` | RLS 開了，但沒有 select 的 policy | 加一條 select policy |
+| `new row violates row-level security policy` | RLS 開了，但沒有 insert 的 policy | 加一條 insert policy |
+| 什麼都正常，讀寫都通 | 🔴 **RLS 沒開** —— 這不是好事，見下面 | 立刻開起來 |
+
+在 Supabase 後台 → **SQL Editor** 跑：
+
+```sql
+-- 建完表就該跑這行
+alter table history enable row level security;
+
+-- 然後至少給一條規則，否則連你自己也讀不到
+create policy "允許寫入" on history
+  for insert to anon with check (true);
+
+create policy "允許讀取" on history
+  for select to anon using (true);
+```
+
+> ⚠️ 上面這兩條 policy 是「**誰都可以讀、誰都可以寫**」——
+> 對今天的練習夠用，但那表示任何人都能看到別人存的東西。
+> 真的要分使用者，policy 要改成比對 `auth.uid()`，那需要先做登入。
+
+### 🔴 為什麼「都正常」反而是問題
+
+你的 `NEXT_PUBLIC_SUPABASE_ANON_KEY` 開頭是 `NEXT_PUBLIC_` —— 它在前端，
+**任何人打開瀏覽器的原始碼就看得到**。這是 Supabase 的設計，不是你設錯。
+
+所以安全邊界不在那把 key，而在 RLS。沒開 RLS 的意思是：
+拿到你網址的人可以讀走整張表、也可以清空它。
+
+**驗證方法**：開一個無痕視窗（沒有你的登入狀態），試著讀你的資料。
+讀得到 = RLS 沒生效。
+
+---
+
 ## ⚠️ 你剛把一個「能花你錢的東西」放到公開網路上
 
 這不是錯誤，是你該知道的事實。
