@@ -9,6 +9,20 @@
 
 ---
 
+## 這個 Repo 給你什麼
+
+| 你要做的事 | 去哪裡 |
+|---|---|
+| 🎯 **把東西做上線** | [QUICKSTART.md](QUICKSTART.md) —— 六張工單，各附驗收條件 |
+| 🤖 **專案內建助教** | [AGENTS.md](AGENTS.md) —— Codex 開啟專案時自動讀取，知道這門課的目標與規則 |
+| 📖 **今天用到的每一支 prompt** | [docs/02-prompts.md](docs/02-prompts.md) |
+| 📋 **規格範本（A–F 六格 review）** | [SPEC-TEMPLATE.md](SPEC-TEMPLATE.md) |
+| 🧯 **卡住了** | [docs/03-troubleshooting.md](docs/03-troubleshooting.md) |
+| 🖼 **投影片與講稿** | `slides/` |
+| 🧱 **範例程式** | `starter-kit/` |
+
+---
+
 ## 今天走的路
 
 ```

@@ -1,0 +1,349 @@
+<!doctype html>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>2026-08-13-下午-UNEXT見習生職涯沙龍</title>
+<style>
+:root{--ink:#141414;--mid:#4a4a48;--mut:#8b8b84;--acc:#e8590c;--accd:#c2410c;
+  --sf:#fdefe4;--neu:#f2f0ec;--line:#e6e3dc;--bg:#fbfaf8}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Helvetica Neue","Noto Sans TC",sans-serif;
+  -webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;
+  padding:5vh 5.5vw 5.5vh 5vw;overflow:hidden}
+.slide.on{display:flex}
+/* 左側垂直細線 + 超大淺色頁碼：Swiss Modern 的可見網格與幾何量體 */
+.slide:before{content:"";position:absolute;left:2.6vw;top:0;bottom:0;
+  width:1px;background:var(--line)}
+/* ⚠️ 順序有意義：`.slide>*` 跟 `.num` 同權重，寫在後面的贏。
+   `.num` 一定要在 `.slide>*` 之後，否則 position 被改成 relative，
+   那顆超大頁碼就變成真的 flex 元素、在每頁底部吃掉 158px 版面高度
+   —— 畫面上看起來只是「內容都偏上」，完全聯想不到是頁碼造成的（2026-08-13 踩過）*/
+.slide>*{position:relative;z-index:1}
+.num{position:absolute;right:3vw;bottom:-2.4vh;font-size:22vh;font-weight:800;
+  line-height:1;color:#efece5;letter-spacing:-.05em;z-index:0;
+  font-variant-numeric:tabular-nums;user-select:none}
+/* header = 章節進程軌：段寬 ∝ 頁數，走過的深、現在的橘 */
+.rail{display:flex;gap:1.2vw;margin-bottom:2.2vh;flex:0 0 auto}
+.rail i{font-style:normal;font-size:clamp(18px,2.4vh,23px);color:var(--mut);
+  padding-bottom:.75vh;border-bottom:2px solid var(--line);letter-spacing:.03em;
+  white-space:nowrap;min-width:max-content}
+.rail i.done{color:var(--mid);border-bottom-color:var(--mut)}
+.rail i.on{color:var(--accd);font-weight:800;border-bottom-color:var(--acc);
+  border-bottom-width:3px}
+h2{font-size:clamp(34px,5.8vh,76px);line-height:1.18;font-weight:800;
+  letter-spacing:-.02em;max-width:34ch;flex:0 0 auto}
+.sub{font-size:clamp(21px,3.2vh,32px);color:var(--mid);margin-top:1.4vh;max-width:44ch}
+/* 內容在「標題以下的剩餘空間」裡垂直居中 —— 靠上會讓每頁都吊在上緣、
+   下面空一大塊（2026-08-13 被退的就是這個）。overflow:hidden 之下居中的風險是
+   內容過高會上下同時被切，所以每頁都要逐頁看過 */
+.body{flex:1;display:flex;flex-direction:column;justify-content:center;
+  margin-top:2.4vh;min-height:0;max-width:min(90vw,1680px)}
+/* .fit = 真正裝內容的那層。字級照投影機尺度給（最小 18px），密的頁靠 JS
+   量完之後對這層下 zoom 收一點 —— 不是整份一起縮小去遷就最擠的那頁 */
+.fit{display:flex;flex-direction:column;gap:2.5vh;width:100%}
+ul,ol{padding:0;list-style:none;display:flex;flex-direction:column;gap:1.7vh}
+.bul li{font-size:clamp(24px,4.2vh,40px);padding-left:2.6ch;position:relative;
+  line-height:1.5;max-width:74ch}
+.bul li:before{content:"";position:absolute;left:0;top:.62em;width:.9ch;height:.9ch;
+  background:var(--acc)}
+ol.steps{gap:.85vh;counter-reset:s}
+ol.steps li{counter-increment:s;position:relative;padding:1.3vh 2vh 1.3vh 5.2ch;
+  background:var(--sf);border-radius:3px;font-size:clamp(21px,3.5vh,32px);
+  font-weight:600;line-height:1.4}
+ol.steps li:before{content:counter(s,decimal-leading-zero);position:absolute;
+  left:1.6ch;top:50%;transform:translateY(-50%);color:var(--accd);font-weight:800;
+  font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:clamp(21px,3.45vh,31px)}
+th{text-align:left;padding:1.4vh 1.5vh;font-weight:800;border-bottom:2px solid var(--ink)}
+th.hl{color:var(--accd)}
+td.hl{font-weight:700}
+td{padding:1.25vh 1.5vh;border-bottom:1px solid var(--line);line-height:1.45}
+td:first-child{font-weight:700}
+tbody tr:last-child td{border-bottom:none}
+pre{background:var(--neu);border-left:3px solid var(--acc);padding:2.2vh 2.4vh;
+  font-size:clamp(19px,3.05vh,27px);line-height:1.6;white-space:pre-wrap;
+  font-family:ui-monospace,Menlo,monospace;overflow:hidden}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:3.4vw}
+.col h3{font-size:clamp(22px,3.7vh,34px);font-weight:800;padding-bottom:1.1vh;
+  border-bottom:2px solid var(--ink)}
+.col.b h3{color:var(--accd);border-color:var(--acc)}
+.col ul{margin-top:1.8vh;gap:1.5vh}
+.col li{font-size:clamp(21px,3.6vh,33px);padding-left:2.4ch;position:relative;
+  line-height:1.45}
+.col li:before{content:"";position:absolute;left:0;top:.62em;width:.8ch;height:.8ch;
+  background:var(--mut)}
+.col.b li:before{background:var(--acc)}
+.flow{display:flex;align-items:stretch;gap:.9vw}
+.fbox{flex:1;border:2px solid var(--ink);padding:2vh 1.2vh;text-align:center;
+  font-size:clamp(20px,3.2vh,29px);font-weight:700;line-height:1.4;
+  display:grid;place-items:center}
+.fbox:last-child{border-color:var(--acc);background:var(--sf)}
+.arw{align-self:center;color:var(--acc);font-size:clamp(21px,3.4vh,32px);font-weight:800}
+.foot{font-size:clamp(22px,3.7vh,34px);color:var(--mid);line-height:1.55;
+  max-width:82ch}
+.foot.acc{color:var(--accd);font-weight:700}
+.cover{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2vh}
+.cover .kicker{color:var(--acc);font-weight:800;font-size:clamp(20px,3vh,30px);
+  letter-spacing:.02em;white-space:nowrap}
+.cover h1{font-size:clamp(38px,9.4vh,124px);line-height:1.02;font-weight:800;
+  letter-spacing:-.035em;white-space:nowrap}
+.cover .lead{font-size:clamp(26px,4.4vh,50px);color:var(--mid);font-weight:500;
+  white-space:nowrap}
+.cover .meta{font-size:clamp(22px,3.7vh,34px);color:var(--mut)}
+/* max-width 原本 26ch，把「要親手 review 的東西」硬折在「親手／review」之間
+   —— 這種句子在 pptx 裡已經有刻意的 <br>，HTML 只要別再多折一次就好 */
+.stmt{font-size:clamp(30px,6.6vh,72px);font-weight:800;line-height:1.26;
+  letter-spacing:-.02em;max-width:34ch;border-left:5px solid var(--acc);
+  padding-left:3vh;text-wrap:balance}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:2.2vh 2.4vw}
+.card{border-top:2px solid var(--ink);padding-top:1.4vh;display:flex;
+  flex-direction:column;gap:.9vh}
+.card h4{font-size:clamp(22px,3.5vh,32px);font-weight:800;margin-bottom:.8vh}
+.card p{font-size:clamp(20px,3.1vh,28px);color:var(--mid);line-height:1.5}
+.card h4 b{color:var(--accd);font-weight:800;margin-right:.55ch}
+.res{background:var(--neu);border-left:4px solid var(--acc);padding:2vh 2.4vh}
+.res>a{display:block;font-size:clamp(20px,3.2vh,30px);font-weight:800;margin-bottom:1.4vh}
+.res dl{display:grid;grid-template-columns:auto 1fr;gap:.9vh 2vw;margin:0}
+.res dt{font-weight:800;font-size:clamp(18px,2.8vh,26px);white-space:nowrap}
+.res dd{margin:0;color:var(--mid);font-size:clamp(18px,2.8vh,26px)}
+.ladder{display:flex;flex-direction:column;gap:1.15vh}
+.rung{display:grid;grid-template-columns:auto auto 1fr auto;
+  align-items:center;gap:0 1.6vw;padding:1.35vh 1.8vh;border-left:4px solid var(--line);
+  background:#fff}
+.rung.done{background:var(--sf);border-left-color:var(--acc)}
+.rung b{font-size:clamp(19px,3.1vh,30px);font-weight:800;color:var(--mut);
+  font-variant-numeric:tabular-nums}
+.rung.done b{color:var(--accd)}
+.rung .en{font-size:clamp(19px,3vh,28px);font-weight:800;letter-spacing:-.01em;
+  white-space:nowrap}
+.rung .zh{font-size:clamp(17px,2.7vh,25px);color:var(--mid)}
+.rung i{font-style:normal;font-size:clamp(14px,2.2vh,20px);font-weight:700;
+  color:var(--mut);white-space:nowrap}
+.rung.done i{color:var(--accd)}
+.smap{display:flex;flex-direction:column;gap:2.4vh}
+.srow{display:flex;align-items:stretch;gap:1.1vw}
+.srow>i{align-self:center;color:var(--acc);font-size:clamp(21px,3.4vh,32px);
+  font-weight:800;font-style:normal}
+.sbox{flex:1;border:1.5px solid var(--line);border-top:3px solid var(--mut);
+  padding:1.5vh 1.6vh}
+.sbox.mine{border-top-color:var(--acc)}
+.sbox b{display:block;font-size:clamp(21px,3.3vh,30px);font-weight:800;margin-bottom:.7vh}
+.sbox span{font-size:clamp(20px,3vh,27px);color:var(--mid);line-height:1.5}
+.snote{flex:1.4;font-size:clamp(20px,3vh,27px);color:var(--accd);line-height:1.55;
+  align-self:center}
+.snote b{font-weight:800}
+.snote em{display:block;margin-top:1.2vh;font-style:normal;color:var(--mid)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(20ch,100%),1fr));
+  gap:1.6vh 1.8vw}
+.gcell{border:1.5px solid var(--line);border-left:3px solid var(--acc);
+  padding:1.4vh 1.6vh;font-size:clamp(20px,3.1vh,28px);line-height:1.45;font-weight:600}
+.pic{position:absolute;z-index:2;image-rendering:pixelated;
+  background:#fff;padding:.6vh;border:1px solid var(--line)}
+a{color:var(--accd);text-decoration:underline;text-decoration-thickness:.09em;
+  text-underline-offset:.16em}
+a:hover{background:var(--sf)}
+#notes{position:fixed;left:0;right:0;bottom:0;max-height:46vh;overflow-y:auto;
+  padding:22px 28px 28px;background:#fff;border-top:3px solid var(--acc);
+  font-size:19px;line-height:1.8;white-space:pre-wrap;transform:translateY(101%);
+  transition:transform .2s;z-index:9;box-shadow:0 -12px 40px #0002}
+#notes.on{transform:none}
+#notes b{display:block;color:var(--mut);font-size:12px;letter-spacing:.1em;
+  margin-bottom:10px;font-weight:700}
+#hud{position:fixed;top:2.4vh;right:3vw;color:var(--mut);font-size:15px;z-index:9;
+  font-variant-numeric:tabular-nums;letter-spacing:.04em}
+#hud b{color:var(--acc);font-weight:800}
+@media print{html,body{overflow:visible}
+  .slide{display:flex!important;position:relative;height:100vh;page-break-after:always}
+  #notes,#hud{display:none}}
+</style>
+<div id=stage><section class="slide" data-k="cover" data-sec=""><div class="cover">
+<p class="kicker">UNEXT 見習生職涯沙龍</p>
+<h1>AI 開發實戰</h1>
+<p class="lead">打造第一個 AI 應用</p>
+<p class="meta">8/13（四）13:30-17:00 · 蔡子揚 Young</p>
+<p class="meta">掃我 → 按 Fork</p>
+<p class="meta"><a href="https://github.com/young-ai-courses/unext-ai-dev-workshop" target="_blank" rel="noopener">github.com/young-ai-courses/unext-ai-dev-workshop</a></p>
+</div><img class="pic" alt="QR" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkAQMAAABEgsN2AAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAH9SURBVHic7dhLbsMwDEVR7UD736V3wNYRP89B0EFAdnSFILBlHo8eKMnLvhkLhWpW18pxX2/7/d3jXK/7tfeMlqFQA8ojefn1qdH588IqQ6EmlMyfxGaYvfh6K0OhJtUb35JkFOrfVKY3l+9t2mNRqEGV81aJXbnJ1HZqn/YAKFSHymHXX78qQ6HalQ5JqdTEubsGCtWtTjJjEc9tpI847Jy3eVNFodqVyadFK1I21/dc2VGoCSWfu002ltlaM8OP9KJQjSoaptmHg4xyeRsK1a1iplKaC3q0zcyt5xyFGlD+aNcp5oRZE5tPX/8oVL/Sbun1ca1hDoJCDajsllkWYc7+aXHeiVSjUP3KExlbSq+MVJ/bfIpCDaksq+iuym3eZqRRqH5llc+1HrdJ9GLJXhSFalPPzeSqI4wcbR4tFIUaUPZ45AUmYd6W4wQbhepXVzRJya2+5FSuiLfFHgCF6lRWpxi/iJ/HOBb6CjkKNaCWdMuVx+qdWa0zjvlAobrVc/6R29xqxvBKFKpd6Yh2mjVSGU9jL4pCdSoNZwT4DJ+Nhd6toVAjyi9j3ivzmLOf7XSjUDPq8ui61XV8y+km4o1CzSpJb076bRx87EKhxtWS3GprzSS/Bgo1oCwKzlTGVRfxVS9EoSZUTUZ6q4tafY2sbKNQ7eqbgUL1qh9gfi2FlVMYtQAAAABJRU5ErkJggg==" style="left:80.35%;top:65.07%;width:12.90%"><div class="num">1</div></section><section class="slide" data-k="flow" data-sec="開場"><nav class="rail"><i class="on" style="flex:6">開場</i><i class="" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>蔡子揚 Young</h2><div class="body"><div class="fit"><div class="flow">
+<div class="fbox">硬體韌體<br>2009-2015</div>
+<span class="arw">→</span>
+<div class="fbox">全端 · 資料<br>PM</div>
+<span class="arw">→</span>
+<div class="fbox">產品長<br>AI 長<br>副執行長</div>
+<span class="arw">→</span>
+<div class="fbox">AI 產品顧問<br>AI 獨立開發者<br>AI 創業者</div>
+</div>
+<p class="foot">接過的產業：教育 · 醫療 · 金融 · 製造</p><p class="foot">我做的事：把想法變成真的能用的產品 —— 從規格到上線</p></div></div><div class="num">2</div></section><section class="slide" data-k="compare" data-sec="開場"><nav class="rail"><i class="on" style="flex:6">開場</i><i class="" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>開工前：先確定這兩個帳號</h2><div class="body"><div class="fit"><div class="cmp"><div class="col a"><h3>① GitHub</h3><ul><li>程式碼的雲端硬碟</li><li>沒有的現在辦，用 Google 登入最快</li><li>之後 Codex 會直接幫你操作它</li></ul></div><div class="col b"><h3>② ChatGPT ＋ 桌面版</h3><ul><li>Codex 就住在桌面版裡面</li><li><a href="https://chatgpt.com/download" target="_blank" rel="noopener">chatgpt.com/download</a> 下載</li><li>建議付費方案（免費版一天約 10 個 task）</li></ul></div></div><p class="foot acc">其他都不用你辦：Vercel 用 GitHub 帳號登入、node/git/gh/vercel 交給 Codex 裝</p><p class="foot acc">唯一還要你自己跑一趟的是 Groq key → <a href="https://console.groq.com" target="_blank" rel="noopener">console.groq.com</a>（免費 1,000 次／天）</p></div></div><div class="num">3</div></section><section class="slide" data-k="steps" data-sec="開場"><nav class="rail"><i class="on" style="flex:6">開場</i><i class="" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>Codex 桌面版：AI 直接改你電腦上的檔案</h2><p class="sub">今天所有事情都在這一個對話框裡發生</p><div class="body"><div class="fit"><ol class=steps>
+<li><a href="https://chatgpt.com/download" target="_blank" rel="noopener">chatgpt.com/download</a> 下載 ChatGPT 桌面版（Mac / Windows）並登入</li>
+<li>左邊選 Codex —— 它跟網頁版的差別是看得到、也改得動你本機的檔案</li>
+<li>先按「開啟資料夾」隨便選一個空資料夾（等它幫你下載專案後再切過去）</li>
+<li>之後每一件事都是：貼一段話 → 看它要做什麼 → 讓它做</li>
+<li>⚠️ 免費方案的 Codex 一天約 10 次（一次＝它完整跑一輪）—— 這堂課會很緊 有 ChatGPT Plus 會順很多；沒有也做得完，額度用光看 QUICKSTART 的 Plan B</li>
+</ol></div></div><div class="num">4</div></section><section class="slide" data-k="code" data-sec="開場"><nav class="rail"><i class="on" style="flex:6">開場</i><i class="" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>Prompt 0：叫 Codex 裝環境 ＋ 拿專案</h2><p class="sub">打開 ChatGPT 桌面版 → 左邊選 Codex → 把下面這段貼進對話框 → 送出</p><div class="body"><div class="fit"><pre>請幫我把開發環境裝好，並把課程專案拿下來。<br>我不會用終端機，每一步先講你要做什麼再執行。<br> <br>1. 檢查：node -v、git -v、gh --version、vercel -v<br>2. 缺的才裝（自己判斷 macOS 還是 Windows）：<br>   Node.js LTS、git、gh、Vercel CLI<br>3. 帶我登入 gh 跟 vercel，要點同意時停下來說<br>4. fork 並下載這個 repo：<br>   <a href="https://github.com/young-ai-courses/unext-ai-dev-workshop" target="_blank" rel="noopener">github.com/young-ai-courses/unext-ai-dev-workshop</a><br>5. 印出四個版本號 ＋ 專案放在哪個路徑<br>清單以外的不要裝，需要管理員密碼先問我</pre>
+<p class="foot">它會停下來問你密碼、要你去瀏覽器點同意 —— 那是正常的，照著點</p><p class="foot">過關條件：四個版本號都印出來，而且它抓得到你的 GitHub 帳號</p></div></div><div class="num">5</div></section><section class="slide" data-k="plain" data-sec="開場"><nav class="rail"><i class="on" style="flex:6">開場</i><i class="" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>今天結束，你會有一個網址</h2><div class="body"><div class="fit"><ul class=bul>
+<li>別人打得開、能操作、真的有 AI 在裡面</li>
+<li>而且你不會寫一行程式</li>
+<li>不是投影片、不是截圖、不是「回家再做」</li>
+<li>是一個現在就能傳給朋友的網址</li>
+</ul>
+<p class="foot acc">我先打開我做的那個給你們看 →</p></div></div><div class="num">6</div></section><section class="slide" data-k="table" data-sec="開場"><nav class="rail"><i class="on" style="flex:6">開場</i><i class="" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>今天會用到 GitHub，先講四個字</h2><div class="body"><div class="fit"><table><thead><tr><th>這個字</th><th class="hl">白話講就是</th></tr></thead><tbody>
+<tr><td>repo</td><td class="hl">一個專案的資料夾 —— 今天的課程資料就放在一個 repo 裡</td></tr>
+<tr><td>fork</td><td class="hl">按一下，把那個資料夾複製一份，變成你的</td></tr>
+<tr><td>PR</td><td class="hl">AI 改完不會直接動你的東西，先放進「等你同意」的清單</td></tr>
+<tr><td>push</td><td class="hl">你改完送上去 —— 一送上去，你的網站就自動重新上線</td></tr>
+</tbody></table>
+<p class="foot acc">掃我看內容</p>
+<p class="foot acc">課程 repo：<a href="https://github.com/young-ai-courses/unext-ai-dev-workshop" target="_blank" rel="noopener">github.com/young-ai-courses/unext-ai-dev-workshop</a></p><p class="foot acc">裡面有：QUICKSTART（上線步驟）· 11 支 prompt · 卡住看 troubleshooting</p><p class="foot acc">你不必自己按 Fork —— 剛剛那支 Prompt 0 就是叫 Codex 幫你 fork 跟下載</p></div></div><img class="pic" alt="QR" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAaQAAAGkAQMAAABEgsN2AAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAH9SURBVHic7dhLbsMwDEVR7UD736V3wNYRP89B0EFAdnSFILBlHo8eKMnLvhkLhWpW18pxX2/7/d3jXK/7tfeMlqFQA8ojefn1qdH588IqQ6EmlMyfxGaYvfh6K0OhJtUb35JkFOrfVKY3l+9t2mNRqEGV81aJXbnJ1HZqn/YAKFSHymHXX78qQ6HalQ5JqdTEubsGCtWtTjJjEc9tpI847Jy3eVNFodqVyadFK1I21/dc2VGoCSWfu002ltlaM8OP9KJQjSoaptmHg4xyeRsK1a1iplKaC3q0zcyt5xyFGlD+aNcp5oRZE5tPX/8oVL/Sbun1ca1hDoJCDajsllkWYc7+aXHeiVSjUP3KExlbSq+MVJ/bfIpCDaksq+iuym3eZqRRqH5llc+1HrdJ9GLJXhSFalPPzeSqI4wcbR4tFIUaUPZ45AUmYd6W4wQbhepXVzRJya2+5FSuiLfFHgCF6lRWpxi/iJ/HOBb6CjkKNaCWdMuVx+qdWa0zjvlAobrVc/6R29xqxvBKFKpd6Yh2mjVSGU9jL4pCdSoNZwT4DJ+Nhd6toVAjyi9j3ivzmLOf7XSjUDPq8ui61XV8y+km4o1CzSpJb076bRx87EKhxtWS3GprzSS/Bgo1oCwKzlTGVRfxVS9EoSZUTUZ6q4tafY2sbKNQ7eqbgUL1qh9gfi2FlVMYtQAAAABJRU5ErkJggg==" style="left:82.37%;top:30.67%;width:11.63%"><div class="num">7</div></section><section class="slide" data-k="table" data-sec="為什麼"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="on" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>AI 寫 code 這件事，走過三個階段</h2><div class="body"><div class="fit"><table><thead><tr><th></th><th>2021 自動補全</th><th>2023 對話生成</th><th class="hl">2025 交辦執行</th></tr></thead><tbody>
+<tr><td>你做什麼</td><td>打字</td><td>問「怎麼寫」</td><td class="hl">說「我要什麼」</td></tr>
+<tr><td>AI 做什麼</td><td>猜你下一行</td><td>給你一段，你貼回去</td><td class="hl">自己讀專案、改檔、開 PR</td></tr>
+<tr><td>你的角色</td><td>打字的人</td><td>組裝的人</td><td class="hl">需求方＋驗收方</td></tr>
+</tbody></table>
+<p class="foot">Codex · Claude Code · Cursor 都在第三階段</p></div></div><div class="num">8</div></section><section class="slide" data-k="compare" data-sec="為什麼"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="on" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>所以瓶頸換位置了</h2><div class="body"><div class="fit"><div class="cmp"><div class="col a"><h3>以前的瓶頸</h3><ul><li>你會不會寫</li><li>看得懂語法嗎</li><li>記得住 API 嗎</li></ul></div><div class="col b"><h3>現在的瓶頸</h3><ul><li>你到底要什麼</li><li>看不看得出它做錯</li><li>說不說得清楚</li></ul></div></div></div></div><div class="num">9</div></section><section class="slide" data-k="table" data-sec="為什麼"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="on" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>「需求講不清」比 AI 早了五十年</h2><div class="body"><div class="fit"><table><thead><tr><th>年代</th><th class="hl">解法</th><th>為什麼還是會出事</th></tr></thead><tbody>
+<tr><td>1970s 瀑布式</td><td class="hl">先寫超厚規格書，簽核才開工</td><td>寫的時候還不知道要什麼</td></tr>
+<tr><td>2000s 敏捷</td><td class="hl">不寫厚規格，兩週一版邊做邊修</td><td>靠「人的常識相通」補洞</td></tr>
+<tr><td>2025 SDD</td><td class="hl">規格是唯一真相，code 是它的產物</td><td>← 我們現在在這</td></tr>
+</tbody></table></div></div><div class="num">10</div></section><section class="slide" data-k="compare" data-sec="為什麼"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="on" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>敏捷能省規格，是因為人有常識</h2><div class="body"><div class="fit"><div class="cmp"><div class="col a"><h3>你跟工程師說「做登入頁」</h3><ul><li>他自己就知道要有密碼欄</li><li>要遮起來、打錯要提示</li><li>不能把密碼印進 log</li></ul></div><div class="col b"><h3>你跟 AI 說「做登入頁」</h3><ul><li>它給你統計上最常見的做法</li><li>＋一堆你沒要的東西</li><li>＋漏掉你以為理所當然的</li></ul></div></div><p class="foot acc">那些沒人寫在規格上的事，工程師自己補了；AI 不會 —— 它只會猜</p></div></div><div class="num">11</div></section><section class="slide" data-k="statement" data-sec="為什麼"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="on" style="flex:5">為什麼</i><i class="" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>SDD 一句話</h2><div class="body"><div class="fit"><p class="stmt">規格是你唯一真的要親手 review 的東西<br>code 是它的產物</p>
+<p class="foot">code 壞了可以重新生成一次</p><p class="foot">規格錯了，生成幾次都是錯的</p></div></div><div class="num">12</div></section><section class="slide" data-k="flow" data-sec="寫規格"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="on" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>所以 PRD 怎麼寫？你不用學會寫</h2><div class="body"><div class="fit"><div class="flow">
+<div class="fbox">① 許願<br>一句白話</div>
+<span class="arw">→</span>
+<div class="fbox">② 召喚訪談員<br>它問你 6 題</div>
+<span class="arw">→</span>
+<div class="fbox">③ 你 review<br>← 技術活在這</div>
+</div>
+<p class="foot">壞消息：你不知道要寫什麼（第一次寫 PRD 的人都不知道）</p><p class="foot">好消息：你不用知道 —— LLM 知道要問什麼</p></div></div><div class="num">13</div></section><section class="slide" data-k="code" data-sec="寫規格"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="on" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>🔑 這支 prompt 是今天最重要的工具</h2><p class="sub">開 ChatGPT 或 Claude 的網頁版，開一個新對話貼進去（不是 Codex）</p><div class="body"><div class="fit"><pre>你是資深產品經理，把外行人模糊的願望，<br>問成工程師做得出來的需求單。<br> <br>我的願望：「＿＿＿＿＿」<br>硬限制：不會寫程式／只有 3.5 小時／<br>　　　　只有一個輸入框＋一次 AI 呼叫<br>規則：一次只問一題，最多 6 題<br>　　　只問使用者層面，不問技術問題<br>　　　我說「不知道」就給我 2-3 個選項<br>問完產出 PRD，要有「做得完 vs 做不完」</pre>
+<p class="foot">全文（含 PRD 完整格式）在 repo → docs/02-prompts.md 的 Prompt 1，複製就好</p></div></div><div class="num">14</div></section><section class="slide" data-k="cards" data-sec="寫規格"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="on" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>它給你 PRD 之後：逐條 review</h2><div class="body"><div class="fit"><div class="cards"><div class="card"><h4><b>A</b>有沒有搞懂</h4><p>是我要的東西嗎<br>有沒有自己加東西</p></div><div class="card"><h4><b>B</b>夠不夠具體</h4><p>「他做 X → 看到 Y」<br>沒有無法打勾的形容詞</p></div><div class="card"><h4><b>C</b>AI 做什麼</h4><p>輸入、輸出格式<br>不確定的怎麼處理</p></div><div class="card"><h4><b>D</b>做不完的呢</h4><p>有沒有誠實切開<br>做不完的有寫下來嗎</p></div><div class="card"><h4><b>E</b>有沒有踩線</h4><p>個資 · 金流 · 責任<br>key 有沒有進 code</p></div><div class="card"><h4><b>F</b>能不能打勾</h4><p>三條驗收條件<br>當場打得勾或打得叉</p></div></div></div></div><div class="num">15</div></section><section class="slide" data-k="plain" data-sec="寫規格"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="on" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>最容易漏的是 D：它不會主動說「做不完」</h2><div class="body"><div class="fit"><ul class=bul>
+<li>你說要五個功能 → 它五個都寫進 PRD，都寫得很可行</li>
+<li>因為它不知道你只有 3.5 小時、不會寫程式</li>
+<li>所以你要主動問一句：</li>
+<li>「我只有 3.5 小時、不會寫程式、只有一個輸入框加一次 AI 呼叫。 重新切一次：今天做得完的一組，做不完的另外列清單」</li>
+</ul>
+<p class="foot">做不完的不要刪掉 —— demo 時你可以說「這版先做到 X，接下來長 Y」</p></div></div><div class="num">16</div></section><section class="slide" data-k="steps" data-sec="寫規格"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="on" style="flex:5">寫規格</i><i class="" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>👆 動手：25 分鐘</h2><div class="body"><div class="fit"><ol class=steps>
+<li>想一件你每週都要重複做、很煩的事</li>
+<li>開 ChatGPT / Claude 新對話 → 貼訪談員 prompt</li>
+<li>它問你 6 題，你老實答</li>
+<li>拿到 PRD → 用 A-F 六格逐條 review</li>
+<li>不對的地方叫它改（一次只講一節）</li>
+<li>存成你 repo 的 SPEC.md</li>
+</ol>
+<p class="foot">腦袋空白的人舉手 → 我給你暖身 prompt（repo 的 Prompt 2）</p></div></div><div class="num">17</div></section><section class="slide" data-k="flow" data-sec="上線"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="on" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>接下來這條線，全自動</h2><div class="body"><div class="fit"><div class="flow">
+<div class="fbox">SPEC.md<br>你 review 過</div>
+<span class="arw">→</span>
+<div class="fbox">Codex<br>改 code<br>開 PR</div>
+<span class="arw">→</span>
+<div class="fbox">GitHub<br>你 merge<br>CI 檢查</div>
+<span class="arw">→</span>
+<div class="fbox">Vercel<br>自動部署</div>
+<span class="arw">→</span>
+<div class="fbox">你的網址<br>別人打得開</div>
+</div>
+<p class="foot">你只做兩個動作：把 SPEC 給 Codex、按 merge</p><p class="foot">剩下每一步都是自動發生的 —— 這叫 CI/CD</p></div></div><div class="num">18</div></section><section class="slide" data-k="code" data-sec="上線"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="on" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>👆 動手：30 分鐘，讓它活著</h2><p class="sub">貼在同一個地方：ChatGPT 桌面版 → Codex → 對話框 → 送出</p><div class="body"><div class="fit"><pre>請幫我把這個專案部署上線。我不會用終端機，<br>每一步先講你要做什麼，再執行。<br> <br>1. 進到 starter-kit 資料夾再裝套件、再部署<br>   一定要在 starter-kit 裡面部署，站在最外層會「成功」但打開是 404<br>2. 部署到 Vercel production，第一次問的設定全部用預設<br>3. 把 GROQ_API_KEY 加進環境變數（key 我貼給你，不要印在畫面上）<br>4. 加完再部署一次讓 key 生效，不重跑不會生效<br>5. 把網址給我，並確認打開不是 404</pre>
+<p class="foot">最貴的兩個坑寫在第 1 步跟第 4 步 —— 你不用記，但看到 404 就知道它跳過了</p></div></div><div class="num">19</div></section><section class="slide" data-k="steps" data-sec="上線"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="on" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>把 SPEC 交給 Codex 改</h2><p class="sub">規格是你寫的，動手的是它 —— 你只負責看它做對沒有</p><div class="body"><div class="fit"><ol class=steps>
+<li>在 Codex 貼上你 review 過的 SPEC，加一句「先複述你的理解，等我說開始」</li>
+<li>看它複述得對不對 —— 不對就先講清楚，別讓它開工</li>
+<li>它改完會給你 diff（哪幾個檔、改了什麼）→ 你看過再接受</li>
+<li>接受後 push → Vercel 自動重新部署，30 秒後重新整理你的網址</li>
+</ol></div></div><div class="num">20</div></section><section class="slide" data-k="smap" data-sec="上線"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="on" style="flex:4">上線</i><i class="" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>你做的東西，長這樣</h2><p class="sub">橘色是你的（改得動）· 灰色是租來的服務（只能呼叫）</p><div class="body"><div class="fit">
+<div class="smap">
+  <div class="srow">
+    <div class="sbox mine"><b>① 你的電腦</b><span>Codex 改 code<br>vercel CLI 部署</span></div>
+    <i>→</i>
+    <div class="sbox mine"><b>② GitHub</b><span>你的 code 放這<br>Actions 自動檢查</span></div>
+    <i>→</i>
+    <div class="sbox mine"><b>③ Vercel</b><span>你的網站真的在這裡跑<br>（畫面 ＋ 一支 AI 入口）</span></div>
+  </div>
+  <div class="srow">
+    <div class="sbox"><b>使用者</b><span>打開你的網址<br>只看得到 ③</span></div>
+    <div class="snote">他按送出 → ③ 拿<b>你的</b> key 去問 ④<br>要留紀錄才寫 ⑤
+      <em>他的瀏覽器永遠碰不到 ④⑤，也碰不到你的 key</em></div>
+    <div class="sbox"><b>④ Groq</b><span>AI 在這<br>（你的 key 在 ③）</span></div>
+    <div class="sbox"><b>⑤ Supabase</b><span>資料存這<br>（RLS 在這擋）</span></div>
+  </div>
+  <p class="foot acc">①②③ 是你的，你改得動；④⑤ 是租來的，你只能照它的規則呼叫</p>
+</div></div></div><div class="num">21</div></section><section class="slide" data-k="table" data-sec="接 AI"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="done" style="flex:4">上線</i><i class="on" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>想法落在哪一層，就叫 AI 動那一層</h2><p class="sub">你不必知道要改哪個檔 —— 講你想看到什麼就好</p><div class="body"><div class="fit"><table><thead><tr><th>你的想法</th><th class="hl">落在</th><th>你就這樣跟 Codex 講</th></tr></thead><tbody>
+<tr><td>畫面上的字、顏色、按鈕</td><td class="hl">① 頁面</td><td>「送出按鈕的字改成『幫我整理』」</td></tr>
+<tr><td>AI 回答的內容或格式</td><td class="hl">③ 伺服器</td><td>「回答多一欄負責人，沒寫就填未指定」</td></tr>
+<tr><td>要記住上次打了什麼</td><td class="hl">⑤ 資料庫</td><td>「我要記住上次打的，該加什麼？」</td></tr>
+</tbody></table>
+<p class="foot">說得出「從什麼變成什麼」→ 直接講，這叫具體</p><p class="foot">不知道該動哪裡 → 先問路：「我要 ___，該加什麼？」，這叫抽象</p></div></div><div class="num">22</div></section><section class="slide" data-k="flow" data-sec="接 AI"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="done" style="flex:4">上線</i><i class="on" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>那個 AI 在你的網站哪裡？</h2><div class="body"><div class="fit"><div class="flow">
+<div class="fbox">使用者<br>打字</div>
+<span class="arw">→</span>
+<div class="fbox">你的畫面</div>
+<span class="arw">→</span>
+<div class="fbox">你的伺服器<br>key 只在這</div>
+<span class="arw">→</span>
+<div class="fbox">Groq<br>AI 在這</div>
+</div>
+<p class="foot">為什麼 key 不能放前端：任何人打開瀏覽器的原始碼就看得到它</p><p class="foot">所以前端只跟「你自己的伺服器」說話，由伺服器拿著 key 去問 AI</p></div></div><div class="num">23</div></section><section class="slide" data-k="code" data-sec="接 AI"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="done" style="flex:4">上線</i><i class="on" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>換一個 AI＝改一段話（不用改程式邏輯）</h2><div class="body"><div class="fit"><pre>跟 Codex 說：把 AI 的角色設定換成這段 —<br> <br>你是一位嚴謹的會議秘書。<br>把使用者貼進來的筆記整理成三類：<br>待辦事項 / 已做的決議 / 需要再確認的事。<br>用表格輸出，欄位是「類別 | 內容 | 負責人」。<br>沒寫負責人的填「未指定」，不要自己猜是誰。<br>不確定的放進「需要再確認」，不要編。</pre>
+<p class="foot acc">「不要自己猜」「不要編」這兩句很重要 —— 不寫它就會編</p></div></div><div class="num">24</div></section><section class="slide" data-k="compare" data-sec="接 AI"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="done" style="flex:4">上線</i><i class="on" style="flex:4">接 AI</i><i class="" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>改東西的兩條紀律</h2><div class="body"><div class="fit"><div class="cmp"><div class="col a"><h3>① 一次只講一件事</h3><ul><li>✗「幫我做一個會議整理器」</li><li>✗「介面弄漂亮一點」</li><li>✓「把標題改成 X，提示改成 Y」</li></ul></div><div class="col b"><h3>② 壞了先退回，不要接著補</h3><ul><li>✗「幫我修好」→ 它會一直加東西，越補越難救</li><li>✓「退回上一個能動的版本」→ 它自己會做</li><li>退回去之後，把需求重講一次</li></ul></div></div><p class="foot acc">退回去不算失敗 —— 版本控制的整個意義，就是讓你敢改</p></div></div><div class="num">25</div></section><section class="slide" data-k="plain" data-sec="資料庫"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="done" style="flex:4">上線</i><i class="done" style="flex:4">接 AI</i><i class="on" style="flex:1">資料庫</i><i class="" style="flex:2">收尾</i></nav><h2>「那我打的東西存哪？」</h2><div class="body"><div class="fit"><ul class=bul>
+<li>今天沒有資料庫 —— 這是刻意的</li>
+<li>「輸入 → AI → 看結果」這形狀已經有用，今天做得完</li>
+<li>加資料庫要裝服務、接環境變數，至少 40 分鐘</li>
+<li>要存東西的時候，用 Supabase 你不用先學它 —— 跟 Codex 說：「我要記住上次打的，幫我接 Supabase」</li>
+</ul>
+<p class="foot acc">⚠️ 唯一要記住的一件事：建完表一定要開 RLS，否則任何人都讀得走你的資料</p></div></div><div class="num">26</div></section><section class="slide" data-k="smap" data-sec="收尾"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="done" style="flex:4">上線</i><i class="done" style="flex:4">接 AI</i><i class="done" style="flex:1">資料庫</i><i class="on" style="flex:2">收尾</i></nav><h2>你剛才做的事，有名字</h2><p class="sub">AI 工程的五層演進 —— 你今天走過前三層</p><div class="body"><div class="fit">
+<div class="ladder">
+  <div class="rung done"><b>1</b><span class="en">Prompt Engineering</span>
+    <span class="zh">你寫的那些 prompt</span><i>做過了</i></div>
+  <div class="rung done"><b>2</b><span class="en">Context Engineering</span>
+    <span class="zh">你 review 過的 SPEC.md</span><i>做過了</i></div>
+  <div class="rung done"><b>3</b><span class="en">Harness Engineering</span>
+    <span class="zh">那個綠勾勾 CI</span><i>做過了</i></div>
+  <div class="rung"><b>4</b><span class="en">Loop Engineering</span>
+    <span class="zh">讓系統自己一輪一輪推進</span><i>還沒</i></div>
+  <div class="rung"><b>5</b><span class="en">Graph Engineering</span>
+    <span class="zh">多個 AI 分工協作</span><i>還沒</i></div>
+</div>
+<p class="foot acc">前三層今天你親手做過了 —— 帶走的時候，這三個名字你講得出來</p></div></div><div class="num">27</div></section><section class="slide" data-k="smap" data-sec="收尾"><nav class="rail"><i class="done" style="flex:6">開場</i><i class="done" style="flex:5">為什麼</i><i class="done" style="flex:5">寫規格</i><i class="done" style="flex:4">上線</i><i class="done" style="flex:4">接 AI</i><i class="done" style="flex:1">資料庫</i><i class="on" style="flex:2">收尾</i></nav><h2>上台 2 分鐘，講這三件事</h2><div class="body"><div class="fit">
+<ol class="steps">
+  <li>我原本要花多久做這件事</li>
+  <li>這個東西幫我做掉了哪一段</li>
+  <li>今天沒做完的部分，接下來會怎麼長</li>
+</ol>
+<div class="res">
+  <a href="https://github.com/young-ai-courses/unext-ai-dev-workshop" target="_blank" rel="noopener">github.com/young-ai-courses/unext-ai-dev-workshop</a>
+  <dl>
+    <dt>QUICKSTART</dt><dd>上線步驟從頭到尾</dd>
+    <dt>docs/02-prompts</dt><dd>今天用到的每一支 prompt</dd>
+    <dt>docs/03-troubleshooting</dt><dd>卡住了看這裡</dd>
+  </dl>
+</div></div></div><div class="num">28</div></section></div>
+<div id=notes></div><div id=hud></div>
+<script>
+const S=[...document.querySelectorAll('.slide')],N=["開場就把終點講出來：今天走出這個房間，你有一個網址。不是投影片、不是截圖。\n右下角那個 QR 現在就叫他們掃 —— 掃進去按 Fork，今天所有東西都在裡面。", "四格帶過，不要念履歷。\n產業那行是重點：他們即將進不同的公司，看到「同一套方法用在八個不同產業」比聽我做過什麼產品有用。\n要講的只有一句：我不是因為很會寫 code 才做得出 AI 產品，是因為我知道要做什麼。", "帶做，不是唸清單。我在台上做一次，他們跟一次，大約 10 分鐘。\n順序：① GitHub 帳號 ② ChatGPT 桌面版按下載（要幾分鐘，讓它在背景跑）③ Groq key：console.groq.com → API Keys → Create API Key，產完先貼到自己的記事本。\n然後翻下一頁，剩下的四個 CLI 全部交給 Codex 裝 —— 這就是上週那件事的延伸：以前要工程師開終端機打指令，現在你講中文。\n額度那個數字要講對：llama-3.3-70b-versatile 是 1,000 次／天（上週實測 x-ratelimit 標頭），坊間說的 14,400 是小模型的，不是這顆。\n⚠️ 14:30-15:00 全國網路降速演習，那半小時不要指望下載—— 這就是為什麼現在裝。\n公司筆電鎖權限裝不了的人舉手，我給他 Vercel Drop 那條路。", "為什麼用桌面版而不是網頁版：桌面版看得到、也改得動你本機的檔案，\n所以流程是「它改 → 你看 → 接受」，不用把 code 複製來複製去。\n額度要老實講：免費約 10 次／天，反覆試錯很容易用完。有 Plus 的人會順很多，但不要讓沒付費的人覺得今天做不完—— Plan B（普通對話 + 貼回 GitHub 網頁編輯）是真的可行。\n⚠️ 講完這頁直接翻下一頁貼 Prompt 0，不要停 —— 裝機要最早開始跑。", "這頁的意義不只是省事：它讓「你不必會終端機」在開場第一分鐘就被證明一次。\n我在台上貼一次給他們看，Codex 會逐步回報它要做什麼 —— 叫他們讀它的回報，不要無腦按同意，這就是今天一直要練的驗收。\n⚠️ 兩件事 Codex 幫不了：帳號要自己註冊、ChatGPT 桌面版要自己裝（Codex 就住在裡面）。所以那兩件才是上一頁的內容。\n全文在 repo 的 docs/02-prompts.md（Prompt 0），叫他們去複製，不要照打。\n公司筆電擋 npm 全域安裝的人，等一下走 Vercel Drop。", "這裡真的打開一個做好的範例網站，現場輸入東西、AI 回話。先讓他們看到終點，後面所有步驟才有意義。", "這四個字今天會一直出現，所以先講完，後面就不用停下來解釋。\n重點不是要他們懂 git，是要他們知道「東西放在哪、AI 改的東西為什麼要我按同意」。\n講 PR 的時候強調：這就是你的驗收關卡 —— AI 沒有權限直接改你的東西。\n當場帶他們 fork，確認每個人都拿到自己那一份再往下走。", "差別不是「更聰明」，是它會自己動手，不用你貼來貼去。", "這一頁是全場的軸。\n左邊那三個問題，AI 現在都比你強；右邊那三個，它一個都不會替你回答。\n補充講：它實作比你強、速度快一百倍，唯一不知道的是你腦子裡那個東西；而它不會承認自己不知道 —— 它會猜，猜得非常自信、看起來非常對。\n今天練的兩件事都是在補這個洞：說清楚、看得出錯。", "SDD = Spec-Driven Development。不是新流程狂熱，是接單的那位變了。", "這是整個 SDD 的理由。不是流程要求，是接單的那位不會自己補洞。", "", "問對問題本身就是專業。你不會問「誰驗收」「什麼算成功」「你的硬限制是什麼」，但那三題決定東西做不做得出來。讓專業的來問，你只要答得誠實。", "不要念全文。現場直接示範跑一次，讓他們看到它真的一題一題問，比看投影片上的字有用。全文在 repo，他們複製。", "這張表就是今天要帶走的能力。它產出速度是你一百倍、準確度大概七成，那三成錯的地方長得跟對的一模一樣。看得出來就是你的價值。", "", "巡場只問一句：你今天要帶走的那一塊，是什麼？做完能解決你哪個痛點？", "", "這頁是「不用打指令」這件事的第二次證明（第一次是 Prompt 0 裝環境）。\n兩個坑本來各自是一整頁在教：\n  · 部署要在 starter-kit 裡跑 —— 站在最外層會部署「成功」、給你網址、打開卻是 404，而且沒有任何錯誤訊息指向原因，比直接失敗更難查\n  · 環境變數加完要再部署一次才生效\n現在兩條都寫進 prompt 裡讓 Codex 照做。但講的時候還是要點出來，因為它連到今天的主軸：部署成功 ≠ 網站活著，跟「AI 說做好了 ≠ 做對了」是同一件事 —— 差別只是這次換到基礎設施這一層。\n全文在 repo 的 docs/02-prompts.md（Prompt 0.5），叫他們複製不要照打。\n⚠️ key 貼給 Codex 的時候提醒一句：那串等於密碼，只進 Vercel 的環境變數，不要貼進 GitHub、不要傳給同學。", "這一段是今天的核心動作：規格是人寫的，code 是它產的。\n「先複述你的理解」那句是保險 —— 讓它在動手前把誤解講出來，\n省下的時間比它花的多。現場示範一次它複述錯、被我糾正的樣子最有說服力。\n\n看 diff 不是要他們讀 code，是看「它動了哪幾個檔」——\n動到你沒要求的檔案就是警訊，那時候退回去重講。\n\n額度要老實講：免費約 10 次/天，反覆試錯很容易用完。有 Plus 的人會順很多，但不要讓沒付費的人覺得今天做不完 —— Plan B（普通對話 + 貼回 GitHub）是真的可行。", "這頁用來回答「我到底做了什麼」，下一頁才是重點：想法落在哪一層。\n講三條線：\n① → ② → ③：你在自己電腦上改，push 到 GitHub，Vercel 自動把它跑起來。\n③ → ④：使用者按送出，是你的伺服器拿著 key 去問 Groq，不是他的瀏覽器去問。\n③ → ⑤：要留下紀錄才需要 Supabase，而 RLS 是擋在 ⑤ 這一層、不是在 ③。\n最後那句是重點：橘色的部分壞了你修得動，灰色的只能照它的規則玩 —— 這也是為什麼額度、限流、RLS 這些事你得知道。", "這頁是整份 deck 最實用的一頁，因為它回答「我有想法之後第一步做什麼」。\n抽象與具體的分工要講清楚，但都用他們的語言講 —— 台下不會有人去打開檔案：\n· 具體 = 你說得出「原本長這樣 → 我要它變那樣」。直接講，它自己去找檔案。\n· 抽象 = 你只知道想要什麼、不知道要動哪裡。那就問路，讓它告訴你該加什麼。\n兩個反過來都會壞：什麼都還沒想清楚就下具體指令 → 你會指錯方向；\n一直抽象 → 它到處亂改，而且一個 Codex task 就燒掉了。\n現場示範：拿「我要記住上次打什麼」問一次抽象的，看它自己說要加資料庫。\n它動完會回報改了哪些檔 —— 那時候看一眼就好，這就是驗收，不是要你讀 code。\n口頭再補兩條（版面放不下）：\n· 「不想被別人看到我的資料」→ 落在 ⑤ 的 RLS，不是 ① 頁面 —— 頁面擋不住任何人。\n· 「我要每天早上自動跑一次」→ 落在 ② GitHub，就是第一堂那個競品監控器。", "這是今天唯一的架構觀念，但它真的重要 —— 把 key 放前端是新手最貴的錯。", "", "⛔ 講師紀律：等有人真的被 Codex 改壞了再講這一頁，不要提前預防。\nMollick 的鋸齒邊界只能靠親身撞到 —— 我先講規則，他們記不住；他們自己看到「AI 說改好了但畫面壞了」，這一頁才會生根。\n所以巡場看到有人被亂改，不要急著出手救，讓他先看到後果，再回頭指 review 六格跟這兩條紀律。", "這頁只要留下一個名字（Supabase）跟一句話（幫我接）。\n不要展開比較 Upstash / Neon —— 他們今天用不到，講了只是雜訊，真的要用的時候問 Codex 就好。\nRLS 那句是唯一必須從我嘴裡出去的：Supabase 的 anon key 是設計上放前端的，所以擋人的那層叫 RLS，而它預設是關的 —— 沒開等於資料全裸。\n⚠️ 我自己要記得：Vercel KV / Vercel Postgres 已下架，別講那兩個名字。", "這頁的用途是「命名」，不是教學 —— 他們已經做完了，現在給那些動作正式名稱，帶走時才講得出自己會什麼。\n❷ Context：Gartner 2025「context is in, prompt is out」。他們 review 的 SPEC 就是 context。\n❸ Harness：用程式框住 AI，不靠它自律。那個 CI 就是。\n❹ Loop：Boris Cherny「我不再 prompt AI，loop 在 prompt 它」——告訴他們後面還有路，不是今天就無敵了。\nKarpathy 也提醒過這是 Decade of Agents 不是 Year of Agents。", "收尾回到第一頁那句：你現在有一個網址了。"];let i=0,on=false;
+const nb=document.getElementById('notes'),hud=document.getElementById('hud');
+// 雙向自動配版：太滿的縮、太空的放大到把版面吃滿。
+// 只有下限沒有上限的話，內容少的頁會只填不到四成高度、四周一堆空白（被退過一次），
+// 而投影片本來就該是「少字、大字」。上限 1.45 是防止 3 個字的頁膨脹成看板。
+function fit(s){const b=s.querySelector('.body'),f=b&&b.querySelector('.fit');
+  if(!f||f.dataset.fitted)return;
+  let z=1;f.style.zoom=1;
+  const H=()=>f.getBoundingClientRect().height,box=()=>b.clientHeight;
+  if(H()>box()+1){while(H()>box()+1&&z>0.6){z-=0.025;f.style.zoom=z;}}
+  else{while(H()<box()*0.94&&z<1.10){z+=0.025;f.style.zoom=z;}
+       while(H()>box()&&z>0.6){z-=0.025;f.style.zoom=z;}}
+  f.dataset.fitted=z.toFixed(3);}
+function show(n){i=Math.max(0,Math.min(S.length-1,n));
+  S.forEach((s,k)=>s.classList.toggle('on',k===i));fit(S[i]);
+  nb.innerHTML='<b>講稿</b>'+((N[i]||'（這頁沒有講稿）').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])));
+  const sc=S[i].dataset.sec;
+  hud.innerHTML=(sc?sc+' &nbsp;·&nbsp; ':'')+'<b>'+(i+1)+'</b> / '+S.length
+    +' &nbsp;·&nbsp; n = 講稿';location.hash=i+1;}
+addEventListener('keydown',e=>{
+  if(['ArrowRight',' ','PageDown','j'].includes(e.key)){show(i+1);e.preventDefault();}
+  else if(['ArrowLeft','PageUp','k'].includes(e.key)){show(i-1);e.preventDefault();}
+  else if(e.key==='n'){on=!on;nb.classList.toggle('on',on);}
+  else if(e.key==='f'){document.documentElement.requestFullscreen?.();}
+  else if(e.key==='Home'){show(0);}else if(e.key==='End'){show(S.length-1);}});
+let x0=null;addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+addEventListener('touchend',e=>{if(x0===null)return;
+  const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>45)show(i+(d<0?1:-1));x0=null;},{passive:true});
+addEventListener('click',e=>{if(e.target.closest('a')||e.target.closest('#notes'))return;
+  show(i+(e.clientX>innerWidth/2?1:-1));});
+addEventListener('resize',()=>{S.forEach(s=>{const f=s.querySelector('.fit');
+  if(f){delete f.dataset.fitted;f.style.zoom=1;}});fit(S[i]);});
+addEventListener('beforeprint',()=>{S.forEach(s=>{s.classList.add('on');fit(s);});});
+addEventListener('hashchange',()=>{const n=parseInt(location.hash.slice(1)||'1',10)-1;
+  if(n!==i)show(n);});
+show(parseInt(location.hash.slice(1)||'1',10)-1);
+</script>
