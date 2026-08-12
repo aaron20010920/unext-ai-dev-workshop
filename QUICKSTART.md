@@ -70,6 +70,23 @@ https://unext-ai-dev-workshop-你的帳號.vercel.app
 
 ---
 
+## ⚠️ Codex 免費額度大約一天 10 次，省著用
+
+一個 task = 它完整跑一輪（讀專案、改檔、開 PR）。**一次講清楚一件事**，
+不要問「幫我看看哪裡怪怪的」讓它到處翻 —— 那也算一次。
+
+**用完了不影響你今天做完**，改走這條（完全沒有次數限制）：
+
+1. 開 [chatgpt.com](https://chatgpt.com) 或 [claude.ai](https://claude.ai) 的**普通對話**（不是 Codex）
+2. 把 `starter-kit/app/page.jsx` **全文**貼給它 + 你的需求，
+   最後加一句「回我完整的檔案內容，不要只給片段」
+3. 複製它回的內容 → 回 GitHub 點進那個檔案 → 鉛筆 ✏️ → 全選貼上 → **Commit changes**
+4. Vercel 自動重新部署，30 秒後重新整理
+
+差別只在「它看不到你的專案，所以你要自己把檔案貼給它」。
+
+---
+
 ## 一定會遇到的三件事
 
 **① Vercel 說 build failed**
