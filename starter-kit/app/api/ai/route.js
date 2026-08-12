@@ -5,12 +5,34 @@
 // 為什麼不能讓前端直接打 Groq：API key 會被所有人看到（打開瀏覽器的原始碼就有）
 // 所以 key 只放在這一層（伺服器端），前端永遠看不到它
 
+// 一次最多接受多長的輸入
+//
+// 為什麼要有這行：沒有它，任何人都能貼 10 萬字進來，一次就把你的免費額度燒一大塊。
+// 這叫 size cap，是最便宜的一道防線
+const MAX_INPUT_CHARS = 4000;
+
+// ⚠️ 這支 API 沒有做「認證」—— 也就是說，任何知道你網址的人都可以用它
+//
+// 今天這樣是刻意的（加登入會讓課程做不完），但你要知道這件事：
+// 你的網址一貼出去，別人就能拿你的 key 去問 AI 問題
+//
+// 真的要給不特定的人用，最少要加這三樣（今天不做，但你該知道名字）：
+//   1. 限流 rate limit — 同一個人一分鐘最多幾次
+//   2. 認證 auth — 只有登入的人能用
+//   3. 用量上限 quota — 一天最多花多少
 export async function POST(request) {
   // 1. 拿到前端送來的東西
   const { input, systemPrompt } = await request.json();
 
   if (!input || !input.trim()) {
     return Response.json({ error: '沒有輸入內容' }, { status: 400 });
+  }
+
+  if (input.length > MAX_INPUT_CHARS) {
+    return Response.json(
+      { error: `一次最多 ${MAX_INPUT_CHARS} 個字，你給了 ${input.length} 個` },
+      { status: 413 }
+    );
   }
 
   // 2. 拿 API key —— 這個值來自 Vercel 的環境變數，不在程式碼裡
