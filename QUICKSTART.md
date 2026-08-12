@@ -1,169 +1,175 @@
-# 五分鐘上線（走命令列）
+# 上線手冊 — 從環境到網址
 
-目標：先讓一個網站活著，之後才改它。
+你的角色是**需求方＋驗收方**：規格由你定、驗收由你做，執行交給 Codex。
+以下每一節是一張工單 —— 交辦內容、以及「做到什麼算完成」的驗收條件。
 
-全部用命令列 —— 指令可以直接複製，不用在網頁上到處找按鈕。
+這是真實工作的分工方式，不是簡化版。你在這裡練的就是接下來在職場上要做的事。
 
 ---
 
-## 事前準備（各一分鐘）
+## 開工前：只要確定兩個帳號
 
-| 要什麼 | 去哪拿 |
+| 要什麼 | 去哪 | 為什麼 |
+|---|---|---|
+| **GitHub 帳號** | [github.com](https://github.com) | 你的 code 住這裡。之後 Codex 會直接幫你操作它 |
+| **ChatGPT ＋ 桌面版** | [chatgpt.com/download](https://chatgpt.com/download) | Codex 住在桌面版裡面。建議付費方案（免費版一天約 10 個 task） |
+
+還要拿一把 AI 的鑰匙：**[console.groq.com](https://console.groq.com) → API Keys → Create API Key**
+（免費，llama-3.3-70b 每天 1,000 次）。
+
+> 🔴 那串 key 等於你的密碼。**只貼給 Codex 讓它放進 Vercel 的環境變數** ——
+> 不要貼進 GitHub、不要傳給同學、不要貼在對話群組。
+> 它只會出現一次，產完馬上複製到記事本。
+
+**Vercel 不用另外註冊** —— 用 GitHub 帳號登入就好，Codex 會帶你走。
+**node / git / gh / vercel 也不用自己裝** —— 下面第一段話就是叫它裝。
+
+---
+
+## 交辦介面：Codex 桌面版
+
+1. 打開 **ChatGPT 桌面版** → 登入 → 左邊選 **Codex**
+2. 按「開啟資料夾」，先指一個空資料夾（取得專案後再切到專案目錄）
+3. 之後每張工單都是同一個節奏：**交辦 → 它複述要做什麼 → 你同意 → 它執行 → 你驗收**
+
+> 它會在需要權限時停下來（密碼、瀏覽器授權）——
+> **停下來的時候讀它要做什麼再放行**，那就是你的第一道驗收關卡。
+
+---
+
+## 工單 1｜建立開發環境並取得專案
+
+交辦內容：
+
+```
+請幫我把開發環境裝好，並把課程專案拿下來。
+我不會用終端機，每一步先講你要做什麼再執行。
+
+1. 檢查：node -v、git -v、gh --version、vercel -v
+2. 缺的才裝（自己判斷 macOS 還是 Windows）：
+   Node.js LTS、git、gh、Vercel CLI
+3. 帶我登入 gh 跟 vercel，要點同意時停下來說
+4. fork 並下載這個 repo：
+   github.com/young-ai-courses/unext-ai-dev-workshop
+5. 印出四個版本號 ＋ 專案放在哪個路徑
+清單以外的不要裝，需要管理員密碼先問我
+```
+
+**驗收條件**：看到四個版本號，而且它抓得到你的 GitHub 帳號、告訴你專案下載到哪。
+拿到路徑之後，回 Codex 的「開啟資料夾」切到那個資料夾。
+
+---
+
+## 工單 2｜部署到 production
+
+交辦內容：
+
+```
+請幫我把這個專案部署上線。我不會用終端機，
+每一步先講你要做什麼，再執行。
+
+1. 進到 starter-kit 資料夾再裝套件、再部署
+   一定要在 starter-kit 裡面部署，站在最外層會「成功」但打開是 404
+2. 部署到 Vercel production，第一次問的設定全部用預設
+3. 把 GROQ_API_KEY 加進環境變數（key 我貼給你，不要印在畫面上）
+4. 加完再部署一次讓 key 生效，不重跑不會生效
+5. 把網址給我，並確認打開不是 404
+```
+
+**驗收條件**：打開它給你的網址，貼一段會議筆記，按送出，AI 真的回話。
+
+今天最貴的兩個坑就寫在第 1 步跟第 4 步。看到問題時對照一下：
+
+| 你看到 | 它跳過了 |
 |---|---|
-| GitHub 帳號 | [github.com](https://github.com) |
-| Vercel 帳號 | [vercel.com](https://vercel.com) → Continue with **GitHub** |
-| Groq API key | [console.groq.com](https://console.groq.com) → API Keys → Create（**只出現一次，馬上複製**） |
-| Node.js · git · gh · vercel | **不用自己裝** → 用 [Prompt 0](docs/02-prompts.md#prompt-0--叫-codex-把開發環境裝好不用開終端機) 叫 Codex 裝，它會印版本號給你確認 |
-| **ChatGPT 桌面版** | [chatgpt.com/download](https://chatgpt.com/download)（Codex 在裡面，**建議 Plus 方案**） |
-
-> ⚠️ Groq 那串等於你的密碼。**不要貼進 GitHub、不要傳給同學。** 它只會進 Vercel 的環境變數。
+| 部署「成功」但網址是 404 | 第 1 步（站在最外層部署） |
+| 網站活著但說「還沒設定 GROQ_API_KEY」 | 第 4 步（加完沒有再部署一次） |
+| 送出後回 403 | 它把 `User-Agent` 那行拿掉了 → 叫它加回去 |
+| 送出後回 429 | 太多人同時打，等 30 秒。不是你弄壞了 |
 
 ---
 
-## Step 1 — Fork（在網頁上做，只有這一步）
+## 工單 3｜依規格實作
 
-到 [github.com/young-ai-courses/unext-ai-dev-workshop](https://github.com/young-ai-courses/unext-ai-dev-workshop)
-→ 右上角 **Fork** → **Create fork**。
-
-現在 `github.com/你的帳號/unext-ai-dev-workshop` 是你的了。
-
----
-
-## Step 2 — 剩下全部在命令列
-
-```bash
-# 一次裝好，之後都不用再做
-npm i -g vercel
-vercel login                 # 會開瀏覽器，選 Continue with GitHub
-
-# 把你 fork 的那份抓下來
-git clone https://github.com/你的帳號/unext-ai-dev-workshop.git
-cd unext-ai-dev-workshop/starter-kit
-npm install
-```
-
-🔴 **`cd` 進 `starter-kit` 這步不能漏。** `vercel` 只看你現在站在哪個目錄——
-在 repo 根目錄跑，它會「成功」部署一個空的東西給你，打開網址是 404，而且不會有任何錯誤訊息告訴你為什麼。
-
----
-
-## Step 3 — 部署
-
-```bash
-vercel --prod
-```
-
-第一次會問幾題，**全部按 Enter 用預設就好**（要不要 set up、專案叫什麼、目錄在哪、要不要改設定）。
-
-跑完會給你一個網址，長得像 `https://starter-kit-xxxx.vercel.app`。
-打開它 —— 頁面在，但按送出會說「還沒設定 GROQ_API_KEY」，因為還沒給它 key。
-
----
-
-## Step 4 — 把 key 給它
-
-```bash
-vercel env add GROQ_API_KEY production
-# 貼上你的 key → Enter
-
-vercel --prod                # 環境變數不會自動生效，要再部署一次
-```
-
-**再打開網址，輸入「用一句話說明什麼是 API」，按送出。**
-
-看到 AI 回你話了 → 你的第一個 AI 應用已經上線，全世界都連得到。
-
----
-
-## Step 5 — 本機也跑得起來（選配）
-
-```bash
-vercel env pull .env.local   # 把線上的環境變數拉下來
-npm run dev                  # 打開 http://localhost:3000
-```
-
-改 code 的時候用這個看效果比較快，不用每次都部署。
-
----
-
-## Step 6 — 讓 Codex 照你的規格改
-
-**用桌面版**（它直接讀寫你電腦上的檔案，不必複製貼上、不必在網頁上編輯）：
-
-1. 到 **[chatgpt.com/download](https://chatgpt.com/download)** 下載 ChatGPT 桌面版（Mac / Windows）
-2. 登入 → 左邊選 **Codex** → **開啟資料夾**，選你剛 clone 下來的 `unext-ai-dev-workshop`
-3. 貼上你 review 過的 SPEC，後面加這段：
+寫好 `SPEC.md`（格式看 [SPEC-TEMPLATE.md](SPEC-TEMPLATE.md)）之後交辦內容：
 
 ```
-請照這份需求單改：
-- 頁面：starter-kit/app/page.jsx
-- AI 的人格與規則：starter-kit/app/api/ai/route.js 的 SYSTEM_PROMPT
+這是我寫的規格，請照它改這個專案。
+
+（把 SPEC.md 的內容貼在這裡）
 
 規則：
-1. 先跟我複述一次你理解的需求，等我說「開始」你才動手
-2. 一次只改這兩個檔，不要新增其他檔案
-3. 不要加登入、資料庫、檔案上傳
-4. 不要動 package.json
+- 先複述你的理解，等我說開始你才動手
+- 一次只改我這次講的東西，不要順手改別的
+- 改完告訴我你動了哪幾個檔、各做了什麼
+- 不確定的地方先問我，不要自己決定
 ```
 
-4. 它改完會給你 **diff** → 看過再接受
-5. 接受後推上去：
-
-```bash
-git add -A && git commit -m "照 SPEC 改首頁" && git push
-```
-
-Vercel 會自動重新部署，30 秒後重新整理你的網址。
-
-**這就是 CI/CD**：你只做「push」這一個動作，剩下每一步都是自動的。
-
-> 💡 **建議用 ChatGPT Plus**。免費方案也能跑完今天，但額度很緊（見下一節）。
+**驗收條件**：它複述得對 → 你說開始 → 它改完 → push → 30 秒後重新整理你的網址，改動出現了。
 
 ---
 
-## ⚠️ Codex 免費額度大約一天 10 次，省著用
+## 工單 4｜單點修改
 
-一個 task = 它完整跑一輪（讀專案、改檔、開 PR）。**一次講清楚一件事**，
-不要問「幫我看看哪裡怪怪的」讓它到處翻 —— 那也算一次。
-
-**用完了不影響你今天做完**，改走這條（完全沒有次數限制）：
-
-1. 開 [chatgpt.com](https://chatgpt.com) 或 [claude.ai](https://claude.ai) 的**普通對話**（不是 Codex）
-2. 把 `starter-kit/app/page.jsx` **全文**貼給它 + 你的需求，
-   最後加一句「回我完整的檔案內容，不要只給片段」
-3. 複製它回的內容 → 回 GitHub 點進那個檔案 → 鉛筆 ✏️ → 全選貼上 → **Commit changes**
-4. Vercel 自動重新部署，30 秒後重新整理
-
-差別只在「它看不到你的專案，所以你要自己把檔案貼給它」。
-
----
-
-## 一定會遇到的三件事
-
-**① 打開網址是 404**
-忘了 `cd starter-kit`。刪掉重來最快：`vercel project rm <專案名>`，
-或到 Vercel → Settings → General → Root Directory 填 `starter-kit` → Redeploy。
-
-**② 按送出說「還沒設定 GROQ_API_KEY」**
-`vercel env add` 之後**沒有再跑一次 `vercel --prod`**。環境變數不會自己生效。
-
-**③ 出現「Groq 回了 401」**
-key 貼錯或貼到不完整。回 console.groq.com 產一把新的，`vercel env rm` 再 `add` 一次。
-
-其他錯誤 → [`docs/03-troubleshooting.md`](docs/03-troubleshooting.md)
-
----
-
-## 存資料（晚場才會用到）
-
-```bash
-vercel install supabase      # 舊版 CLI 是 vercel integration add supabase
-                             # 互動式問方案時挑 Free
-vercel env pull .env.local   # 憑證自動下來，不用自己複製連線字串
+```
+我要改一件事：把＿＿＿改成＿＿＿。
+只改這一件，其他都不要動。改完告訴我你動了哪個檔。
 ```
 
-表在 Supabase 後台點一下就好，不用寫 SQL：**Table Editor → New table → `history`**，
-欄位 `input(text)` · `output(text)` · `created_at(timestamp)`。
+說得出「原本長這樣 → 我要它變那樣」就直接講，這叫**具體**。
+只知道想要什麼、不知道要動哪裡，就改成問路：
 
-🔴 **建完表一定要開 RLS**，否則任何人拿到你的網址就能讀寫整張表 →
-見 [`docs/03-troubleshooting.md`](docs/03-troubleshooting.md) 的 RLS 那一節。
+```
+我想要＿＿＿，這件事該加什麼、動哪裡？先不要動手，先跟我說。
+```
+
+---
+
+## 工單 5｜回復到上一個可用版本
+
+```
+剛才的改動把東西弄壞了。請退回上一個能動的版本，
+不要試著修。退回去之後告訴我現在是哪一版。
+```
+
+> **不要叫它「幫我修好」** —— 它會一直加東西來補，越補越難救。
+> 退回去重講一次，五分鐘就解決。**退回不算失敗，版本控制的意義就是讓你敢改。**
+
+---
+
+## 工單 6｜加上資料保存（選配）
+
+```
+我要讓網站記住使用者之前送出過的內容。
+請幫我接 Supabase（走 Vercel Marketplace，環境變數會自動注入），
+建一張表存紀錄，然後：
+1. 建完表一定要開 RLS，並加上讀寫的 policy
+2. 告訴我怎麼確認 RLS 真的生效
+不要把 key 印在畫面上。
+```
+
+> 🔴 **RLS（Row Level Security）預設是關的。** 不開 = 拿到你網址的人可以讀走整張表、也可以清空它。
+> Supabase 的 anon key 本來就在前端，所以擋人的那層是 RLS，不是那把 key。
+
+---
+
+## 環境受限（公司筆電無法安裝）
+
+兩條完全不用在自己電腦上裝任何東西的路 → 看
+[docs/03-troubleshooting.md](docs/03-troubleshooting.md) 最後一節。
+先試「Vercel 網頁 Import」那條，它還保得住「push 就上線」。
+
+---
+
+## 執行額度用盡時
+
+免費方案大約**一天 10 個 task**（一個 task = 它完整跑一輪）。
+省著用的方法：一次講清楚一件事，不要用「幫我看看哪裡怪」這種讓它到處翻的問法。
+
+用完了走 Plan B：普通對話（chatgpt.com 或 claude.ai）+ GitHub 網頁編輯 ——
+細節在 [docs/03-troubleshooting.md](docs/03-troubleshooting.md)。
+
+---
+
+**所有 prompt 的完整版（含訪談員、PRD review、換 AI 人格）在
+[docs/02-prompts.md](docs/02-prompts.md)。**
