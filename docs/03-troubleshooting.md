@@ -6,14 +6,26 @@
 
 ## Vercel 部署失敗
 
-### `No Next.js version detected` / `Couldn't find package.json`
+### 部署顯示成功，但打開網址是 `404: NOT_FOUND`
 
-**原因**：Root Directory 沒設成 `starter-kit`。
+**這是最常見的一個，而且它不會報錯 —— 所以最難查。**
 
-**修**：Vercel 專案 → **Settings** → **General** → **Root Directory** → 改成 `starter-kit` →
+**原因**：Root Directory 沒設成 `starter-kit`。Vercel 在 repo 根目錄找不到網站，
+就把根目錄當一堆靜態檔案部署掉，然後跟你說成功。
+
+**修**：Vercel 專案 → **Settings** → **General** → **Root Directory** → 填 `starter-kit` →
 存檔 → 回 **Deployments** → 最新那筆右邊 **⋯** → **Redeploy**。
 
-> 這是最常見的一個，九成的部署失敗都是它。
+> 實測過：設錯的時候 CLI 跟畫面都顯示 Production 部署完成、也給你網址，
+> 打開卻是一頁純文字的 `NOT_FOUND`。**部署成功不等於網站活著** ——
+> 這跟「AI 說它做好了不等於它做對了」是同一件事，只是換到基礎設施這一層。
+
+### `Command "npm install" exited with 254`
+
+同一個原因（Root Directory 沒設對），只是這次它在安裝階段就死了 ——
+根目錄沒有 `package.json`，`npm install` 無事可做而報錯。
+
+修法同上。
 
 ### `Module not found` / build 中途紅字
 
