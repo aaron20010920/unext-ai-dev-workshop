@@ -36,7 +36,7 @@
 | **GitHub** 帳號 | [github.com](https://github.com) | 放你的程式碼 |
 | **Vercel** 帳號 | [vercel.com](https://vercel.com)（用 GitHub 登入） | 把它變成網址 |
 | **Groq** API key | [console.groq.com](https://console.groq.com) → API Keys | 網站裡的那個 AI |
-| **ChatGPT** 帳號 | [chatgpt.com](https://chatgpt.com) | Codex（幫你寫程式的那位） |
+| **ChatGPT 桌面版** | [chatgpt.com/download](https://chatgpt.com/download) | Codex 在裡面（**建議 Plus 方案**） |
 | **Node.js** | [nodejs.org](https://nodejs.org) 下載 LTS | 跑 `vercel` 指令要用 |
 
 一台能上網的筆電。**不需要任何程式基礎** —— 程式全部由 AI 寫，你負責說清楚要什麼、看得出它做錯。

@@ -14,6 +14,7 @@
 | Vercel 帳號 | [vercel.com](https://vercel.com) → Continue with **GitHub** |
 | Groq API key | [console.groq.com](https://console.groq.com) → API Keys → Create（**只出現一次，馬上複製**） |
 | Node.js | [nodejs.org](https://nodejs.org) 下載 LTS（`node -v` 有版本號就行了） |
+| **ChatGPT 桌面版** | [chatgpt.com/download](https://chatgpt.com/download)（Codex 在裡面，**建議 Plus 方案**） |
 
 > ⚠️ Groq 那串等於你的密碼。**不要貼進 GitHub、不要傳給同學。** 它只會進 Vercel 的環境變數。
 
@@ -85,16 +86,16 @@ npm run dev                  # 打開 http://localhost:3000
 
 ---
 
-## Step 6 — 讓 AI 照你的規格改
+## Step 6 — 讓 Codex 照你的規格改
 
-到 [chatgpt.com](https://chatgpt.com) 的 **Codex** → 連上你的 GitHub → 選你 fork 的 repo，然後：
+**用桌面版**（它直接讀寫你電腦上的檔案，不必複製貼上、不必在網頁上編輯）：
+
+1. 到 **[chatgpt.com/download](https://chatgpt.com/download)** 下載 ChatGPT 桌面版（Mac / Windows）
+2. 登入 → 左邊選 **Codex** → **開啟資料夾**，選你剛 clone 下來的 `unext-ai-dev-workshop`
+3. 貼上你 review 過的 SPEC，後面加這段：
 
 ```
-這是我的需求單：
-
-（貼上你 review 過的 PRD 全文）
-
-請照這份需求單改 starter-kit：
+請照這份需求單改：
 - 頁面：starter-kit/app/page.jsx
 - AI 的人格與規則：starter-kit/app/api/ai/route.js 的 SYSTEM_PROMPT
 
@@ -105,9 +106,18 @@ npm run dev                  # 打開 http://localhost:3000
 4. 不要動 package.json
 ```
 
-它改完開 PR → 你在 GitHub 按 **Merge** → Vercel 自動重新部署 → 30 秒後重新整理網址。
+4. 它改完會給你 **diff** → 看過再接受
+5. 接受後推上去：
 
-**這就是 CI/CD**：你只做「按 merge」這一個動作，剩下每一步都是自動的。
+```bash
+git add -A && git commit -m "照 SPEC 改首頁" && git push
+```
+
+Vercel 會自動重新部署，30 秒後重新整理你的網址。
+
+**這就是 CI/CD**：你只做「push」這一個動作，剩下每一步都是自動的。
+
+> 💡 **建議用 ChatGPT Plus**。免費方案也能跑完今天，但額度很緊（見下一節）。
 
 ---
 
