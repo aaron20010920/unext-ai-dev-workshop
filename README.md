@@ -46,7 +46,18 @@
 
 先讓網站活起來，再想要做什麼 — 因為「已經活著的東西」改起來比「從零開始」容易一百倍。
 
-**→ 照 [QUICKSTART.md](QUICKSTART.md) 走**
+```bash
+npm i -g vercel && vercel login
+git clone https://github.com/你的帳號/unext-ai-dev-workshop.git
+cd unext-ai-dev-workshop/starter-kit && npm install
+vercel --prod                             # 第一次會問幾題，全部 Enter
+vercel env add GROQ_API_KEY production    # 貼上 console.groq.com 拿的 key
+vercel --prod                             # 再跑一次讓 key 生效
+```
+
+🔴 `cd starter-kit` 不能漏 —— 在根目錄跑會「成功」部署一個打開是 404 的東西。
+
+**→ 完整步驟看 [QUICKSTART.md](QUICKSTART.md)**
 
 ---
 

@@ -1,72 +1,113 @@
-# 五分鐘上線
+# 五分鐘上線（走命令列）
 
 目標：先讓一個網站活著，之後才改它。
 
-全程在瀏覽器，不用安裝任何東西。
+全部用命令列 —— 指令可以直接複製，不用在網頁上到處找按鈕。
 
 ---
 
-## Step 1 — Fork 這個 repo（30 秒）
+## 事前準備（各一分鐘）
 
-1. 到 **[github.com/young-ai-courses/unext-ai-dev-workshop](https://github.com/young-ai-courses/unext-ai-dev-workshop)**
-2. 右上角綠色的 **Fork** → **Create fork**
-3. 現在網址變成 `github.com/你的帳號/unext-ai-dev-workshop` — 這份是你的了
+| 要什麼 | 去哪拿 |
+|---|---|
+| GitHub 帳號 | [github.com](https://github.com) |
+| Vercel 帳號 | [vercel.com](https://vercel.com) → Continue with **GitHub** |
+| Groq API key | [console.groq.com](https://console.groq.com) → API Keys → Create（**只出現一次，馬上複製**） |
+| Node.js | [nodejs.org](https://nodejs.org) 下載 LTS（`node -v` 有版本號就行了） |
 
-> Fork 是「複製一份到自己名下」。之後你怎麼改都不會動到別人的。
-
----
-
-## Step 2 — 拿一把 Groq API Key（1 分鐘）
-
-這把 key 是「你的網站可以用 AI」的憑證。
-
-1. 到 **[console.groq.com](https://console.groq.com)** → 用 Google 登入（免費，不用信用卡）
-2. 左邊選 **API Keys** → **Create API Key** → 隨便取個名字
-3. **它只會出現一次**，馬上複製起來，先貼在記事本
-
-> ⚠️ 這串東西等於你的密碼。**不要**貼進 GitHub、不要貼進聊天室、不要傳給同學。
-> 等一下只會貼進 Vercel 的設定頁（那裡是安全的）。
+> ⚠️ Groq 那串等於你的密碼。**不要貼進 GitHub、不要傳給同學。** 它只會進 Vercel 的環境變數。
 
 ---
 
-## Step 3 — 部署到 Vercel（2 分鐘）
+## Step 1 — Fork（在網頁上做，只有這一步）
 
-1. 到 **[vercel.com](https://vercel.com)** → **Continue with GitHub**（免費）
-2. 進去後點 **Add New...** → **Project**
-3. 找到你剛 fork 的 `unext-ai-dev-workshop` → 點 **Import**
-4. 🔴 **這一步最容易錯**：把 **Root Directory** 改成 `starter-kit`
-   （點 Edit → 選 `starter-kit` 資料夾。**不要**留在根目錄，留在根目錄一定失敗）
-5. 展開 **Environment Variables**，加一個：
-   - Name：`GROQ_API_KEY`（一字不差，全大寫，中間是底線）
-   - Value：貼上 Step 2 拿到的那串
-6. 點 **Deploy** → 等 30–60 秒
+到 [github.com/young-ai-courses/unext-ai-dev-workshop](https://github.com/young-ai-courses/unext-ai-dev-workshop)
+→ 右上角 **Fork** → **Create fork**。
 
-成功的話你會看到一個網址，長得像：
+現在 `github.com/你的帳號/unext-ai-dev-workshop` 是你的了。
 
-```
-https://unext-ai-dev-workshop-你的帳號.vercel.app
+---
+
+## Step 2 — 剩下全部在命令列
+
+```bash
+# 一次裝好，之後都不用再做
+npm i -g vercel
+vercel login                 # 會開瀏覽器，選 Continue with GitHub
+
+# 把你 fork 的那份抓下來
+git clone https://github.com/你的帳號/unext-ai-dev-workshop.git
+cd unext-ai-dev-workshop/starter-kit
+npm install
 ```
 
-**打開它。在輸入框打「用一句話說明什麼是 API」，按送出。**
-
-看到 AI 回你話了 → 你的第一個 AI 應用已經上線，而且全世界都連得到。
+🔴 **`cd` 進 `starter-kit` 這步不能漏。** `vercel` 只看你現在站在哪個目錄——
+在 repo 根目錄跑，它會「成功」部署一個空的東西給你，打開網址是 404，而且不會有任何錯誤訊息告訴你為什麼。
 
 ---
 
-## Step 4 — 讓 Codex 幫你改（剩下的時間都在這）
+## Step 3 — 部署
 
-1. 到 **[chatgpt.com](https://chatgpt.com)** → 側邊欄找 **Codex**
-2. 連上你的 GitHub（第一次會問你授權）→ 選你 fork 的那個 repo
-3. 把你的需求單（[`SPEC-TEMPLATE.md`](SPEC-TEMPLATE.md) 填好的那份）貼給它，然後說：
+```bash
+vercel --prod
+```
 
-> 照這份 SPEC 改 `starter-kit/app/page.jsx`。
-> 先跟我複述一次你理解的需求，等我說「開始」你才動手。
+第一次會問幾題，**全部按 Enter 用預設就好**（要不要 set up、專案叫什麼、目錄在哪、要不要改設定）。
 
-4. 它改完會開一個 PR（Pull Request）→ 你到 GitHub 上按 **Merge**
-5. Vercel 會**自動**重新部署。等 30 秒，重新整理你的網址
+跑完會給你一個網址，長得像 `https://starter-kit-xxxx.vercel.app`。
+打開它 —— 頁面在，但按送出會說「還沒設定 GROQ_API_KEY」，因為還沒給它 key。
 
-> 這就是 CI/CD：你 merge，剩下的自動發生。
-> 每次 push GitHub 也會自動幫你檢查 build 過不過（`.github/workflows/ci.yml` 在做這件事）。
+---
+
+## Step 4 — 把 key 給它
+
+```bash
+vercel env add GROQ_API_KEY production
+# 貼上你的 key → Enter
+
+vercel --prod                # 環境變數不會自動生效，要再部署一次
+```
+
+**再打開網址，輸入「用一句話說明什麼是 API」，按送出。**
+
+看到 AI 回你話了 → 你的第一個 AI 應用已經上線，全世界都連得到。
+
+---
+
+## Step 5 — 本機也跑得起來（選配）
+
+```bash
+vercel env pull .env.local   # 把線上的環境變數拉下來
+npm run dev                  # 打開 http://localhost:3000
+```
+
+改 code 的時候用這個看效果比較快，不用每次都部署。
+
+---
+
+## Step 6 — 讓 AI 照你的規格改
+
+到 [chatgpt.com](https://chatgpt.com) 的 **Codex** → 連上你的 GitHub → 選你 fork 的 repo，然後：
+
+```
+這是我的需求單：
+
+（貼上你 review 過的 PRD 全文）
+
+請照這份需求單改 starter-kit：
+- 頁面：starter-kit/app/page.jsx
+- AI 的人格與規則：starter-kit/app/api/ai/route.js 的 SYSTEM_PROMPT
+
+規則：
+1. 先跟我複述一次你理解的需求，等我說「開始」你才動手
+2. 一次只改這兩個檔，不要新增其他檔案
+3. 不要加登入、資料庫、檔案上傳
+4. 不要動 package.json
+```
+
+它改完開 PR → 你在 GitHub 按 **Merge** → Vercel 自動重新部署 → 30 秒後重新整理網址。
+
+**這就是 CI/CD**：你只做「按 merge」這一個動作，剩下每一步都是自動的。
 
 ---
 
@@ -89,25 +130,30 @@ https://unext-ai-dev-workshop-你的帳號.vercel.app
 
 ## 一定會遇到的三件事
 
-**① Vercel 說 build failed**
-九成是 Root Directory 沒改成 `starter-kit`。回 Settings → General 改掉 → Redeploy。
+**① 打開網址是 404**
+忘了 `cd starter-kit`。刪掉重來最快：`vercel project rm <專案名>`，
+或到 Vercel → Settings → General → Root Directory 填 `starter-kit` → Redeploy。
 
-**② 網站上按送出，出現「還沒設定 GROQ_API_KEY」**
-環境變數沒設，或名字打錯，或**設完沒有 Redeploy**（設定完一定要重新部署一次才生效）。
+**② 按送出說「還沒設定 GROQ_API_KEY」**
+`vercel env add` 之後**沒有再跑一次 `vercel --prod`**。環境變數不會自己生效。
 
 **③ 出現「Groq 回了 401」**
-key 貼錯或貼到不完整。回 console.groq.com 重新產一把。
+key 貼錯或貼到不完整。回 console.groq.com 產一把新的，`vercel env rm` 再 `add` 一次。
 
 其他錯誤 → [`docs/03-troubleshooting.md`](docs/03-troubleshooting.md)
 
 ---
 
-## 想在自己電腦上跑（選配，今天不需要）
+## 存資料（晚場才會用到）
 
 ```bash
-git clone https://github.com/你的帳號/unext-ai-dev-workshop.git
-cd unext-ai-dev-workshop/starter-kit
-npm install
-cp .env.example .env.local     # 然後把 key 填進 .env.local
-npm run dev                    # 打開 http://localhost:3000
+vercel install supabase      # 舊版 CLI 是 vercel integration add supabase
+                             # 互動式問方案時挑 Free
+vercel env pull .env.local   # 憑證自動下來，不用自己複製連線字串
 ```
+
+表在 Supabase 後台點一下就好，不用寫 SQL：**Table Editor → New table → `history`**，
+欄位 `input(text)` · `output(text)` · `created_at(timestamp)`。
+
+🔴 **建完表一定要開 RLS**，否則任何人拿到你的網址就能讀寫整張表 →
+見 [`docs/03-troubleshooting.md`](docs/03-troubleshooting.md) 的 RLS 那一節。
