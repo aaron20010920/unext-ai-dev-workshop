@@ -73,7 +73,8 @@ starter-kit/app/api/ai/route.js 的 fetch headers 裡
 
 太多人同時打（現場 20 個人）或你連續按太快。
 
-**修**：等 30 秒再試。不是你的 code 壞了。
+**修**：稍後再試。Groq 的 429 回應會帶 `retry-after`，等待時間依當下限制而定 ——
+不是你的 code 壞了。
 
 ### 轉圈圈很久然後沒反應
 
@@ -222,8 +223,9 @@ Codex 的額度**依方案、模型、任務大小而變**，不是固定的每�
 
 ## 接了 Supabase 之後：存進去了但讀不回來
 
-九成是 **RLS**（Row Level Security）。它是 Supabase 的權限機制，**預設是關的**，
-而你一旦打開、卻沒寫規則，就會變成「全部擋住」。
+九成是 **RLS**（Row Level Security）—— Supabase 的權限機制。
+⚠️ **不要假設它是開的還是關的**：從後台 Table Editor 建表通常會幫你開，
+自己在 SQL Editor 下 `create table` 就要自己開。而它一旦開著卻沒寫規則，就是「全部擋住」。
 
 三種症狀對應三種狀況：
 

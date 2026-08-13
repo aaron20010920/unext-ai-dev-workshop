@@ -15,7 +15,7 @@
 | **ChatGPT ＋ 桌面版** | [chatgpt.com/download](https://chatgpt.com/download) | Codex 住在桌面版裡面。建議付費方案（額度依方案與任務大小而變） |
 
 還要拿一把 AI 的鑰匙：**[console.groq.com](https://console.groq.com) → API Keys → Create API Key**
-（免費，llama-3.3-70b 每天 1,000 次）。
+（免費方案：每天上限 1,000 次，另有每分鐘次數與 token 限制 —— 現場比較容易撞到後者）。
 
 > 🔴 那串 key 等於你的密碼。**它只能由你本人貼進 Vercel 的環境變數** ——
 > 不要貼進 Codex 或任何 AI 對話（會留在對話紀錄裡）、不要進 GitHub、不要傳到群組。
@@ -45,17 +45,18 @@
 請幫我把開發環境裝好，並把課程專案拿下來。
 我不會用終端機，每一步先講你要做什麼再執行。
 
-1. 檢查：node -v、git -v、gh --version、vercel -v
-2. 缺的才裝（自己判斷 macOS 還是 Windows）：
-   Node.js LTS、git、gh、Vercel CLI
+1. 先「只檢查、不要安裝」：node -v、git -v、gh --version、vercel -v
+   整理成「✅ 已有 / ⚠️ 缺少」給我看，然後停下來等我說繼續
+2. 我說繼續，才裝缺的那幾個（自己判斷 macOS 還是 Windows）
+   要管理員密碼、或裝不動，就停下來告訴我，不要硬試
 3. 帶我登入 gh 跟 vercel，要點同意時停下來說
 4. fork 並下載這個 repo：
    github.com/young-ai-courses/unext-ai-dev-workshop
-5. 印出四個版本號 ＋ 專案放在哪個路徑
-清單以外的不要裝，需要管理員密碼先問我
+5. 告訴我四個版本號，還有專案放在哪個路徑
 ```
 
 **驗收條件**：看到四個版本號，而且它抓得到你的 GitHub 帳號、告訴你專案下載到哪。
+**裝不動不要卡**：公司筆電擋安裝就直接走「環境受限」那節的網頁 Import，一樣做得完。
 拿到路徑之後，回 Codex 的「開啟資料夾」切到那個資料夾。
 
 ---
@@ -86,7 +87,7 @@
 | 部署「成功」但網址是 404 | 第 1 步（站在最外層部署） |
 | 網站活著但說「還沒設定 GROQ_API_KEY」 | 第 4 步（加完沒有再部署一次） |
 | 送出後回 403 | 它把 `User-Agent` 那行拿掉了 → 叫它加回去 |
-| 送出後回 429 | 太多人同時打，等 30 秒。不是你弄壞了 |
+| 送出後回 429 | 碰到 Groq 的 rate limit（每分鐘次數／token）。稍後再試，不是你弄壞了 |
 
 ---
 

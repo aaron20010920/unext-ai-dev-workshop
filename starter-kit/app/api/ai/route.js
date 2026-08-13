@@ -72,7 +72,7 @@ export async function POST(request) {
           },
           { role: 'user', content: input },
         ],
-        max_tokens: 1200,
+        max_completion_tokens: 1200,
       }),
     });
 
