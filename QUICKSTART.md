@@ -12,13 +12,13 @@
 | 要什麼 | 去哪 | 為什麼 |
 |---|---|---|
 | **GitHub 帳號** | [github.com](https://github.com) | 你的 code 住這裡。之後 Codex 會直接幫你操作它 |
-| **ChatGPT ＋ 桌面版** | [chatgpt.com/download](https://chatgpt.com/download) | Codex 住在桌面版裡面。建議付費方案（免費版一天約 10 個 task） |
+| **ChatGPT ＋ 桌面版** | [chatgpt.com/download](https://chatgpt.com/download) | Codex 住在桌面版裡面。建議付費方案（額度依方案與任務大小而變） |
 
 還要拿一把 AI 的鑰匙：**[console.groq.com](https://console.groq.com) → API Keys → Create API Key**
 （免費，llama-3.3-70b 每天 1,000 次）。
 
-> 🔴 那串 key 等於你的密碼。**只貼給 Codex 讓它放進 Vercel 的環境變數** ——
-> 不要貼進 GitHub、不要傳給同學、不要貼在對話群組。
+> 🔴 那串 key 等於你的密碼。**它只能由你本人貼進 Vercel 的環境變數** ——
+> 不要貼進 Codex 或任何 AI 對話（會留在對話紀錄裡）、不要進 GitHub、不要傳到群組。
 > 它只會出現一次，產完馬上複製到記事本。
 
 **Vercel 不用另外註冊** —— 用 GitHub 帳號登入就好，Codex 會帶你走。
@@ -70,9 +70,10 @@
 
 1. 進到 starter-kit 資料夾再裝套件、再部署
    一定要在 starter-kit 裡面部署，站在最外層會「成功」但打開是 404
-2. 部署到 Vercel production，第一次問的設定全部用預設
-3. 把 GROQ_API_KEY 加進環境變數（key 我貼給你，不要印在畫面上）
-4. 加完再部署一次讓 key 生效，不重跑不會生效
+2. 部署到 Vercel production；問到專案根目錄要選哪個，選 starter-kit，其餘用預設
+3. 要加 GROQ_API_KEY 的時候停下來告訴我，我自己去 Vercel 貼
+   不要問我 key、不要把它寫進任何檔案或印出來
+4. 我說加好了，你再部署一次 production 讓它生效
 5. 把網址給我，並確認打開不是 404
 ```
 
@@ -128,8 +129,9 @@
 ## 工單 5｜回復到上一個可用版本
 
 ```
-剛才的改動把東西弄壞了。請退回上一個能動的版本，
-不要試著修。退回去之後告訴我現在是哪一版。
+剛才的改動把網站弄壞了。請先不要修。
+先找出上一個可以 build、可以開啟的版本，
+說明你要退回哪些檔案，等我確認後再執行。
 ```
 
 > **不要叫它「幫我修好」** —— 它會一直加東西來補，越補越難救。
@@ -148,8 +150,10 @@
 不要把 key 印在畫面上。
 ```
 
-> 🔴 **RLS（Row Level Security）預設是關的。** 不開 = 拿到你網址的人可以讀走整張表、也可以清空它。
-> Supabase 的 anon key 本來就在前端，所以擋人的那層是 RLS，不是那把 key。
+> 🔴 **anon（publishable）key 本來就會出現在前端，它不是秘密。**
+> 真正的安全邊界是 **RLS ＋ 最小權限 policy**：建表後先開 RLS，
+> 在你寫出明確 policy 之前，前端不該讀得到任何資料。
+> **驗證方法**：開一個無痕視窗（沒有登入狀態）試著讀，或直接打 API —— 讀得到就是還沒擋住。
 
 ---
 
@@ -163,8 +167,9 @@
 
 ## 執行額度用盡時
 
-免費方案大約**一天 10 個 task**（一個 task = 它完整跑一輪）。
-省著用的方法：一次講清楚一件事，不要用「幫我看看哪裡怪」這種讓它到處翻的問法。
+Codex 的額度依**方案、模型、任務大小**而變，不是固定的每日次數。
+省著用的方法：一次交辦一件小事，不要用「幫我看看哪裡怪」這種讓它到處翻的問法；
+快用完時改用較小／較快的模型，或到 usage dashboard 看剩餘額度。
 
 用完了走 Plan B：普通對話（chatgpt.com 或 claude.ai）+ GitHub 網頁編輯 ——
 細節在 [docs/03-troubleshooting.md](docs/03-troubleshooting.md)。
