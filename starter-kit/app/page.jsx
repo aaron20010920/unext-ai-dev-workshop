@@ -1,47 +1,68 @@
 'use client';
 
-// 這是你的網站首頁 —— LINE 風格的多輪聊天介面
-// 這一版加了：對話紀錄存在瀏覽器的 localStorage，重新整理頁面不會消失
-// （限制：只存在「這一台瀏覽器」，換裝置或清瀏覽器資料就會不見）
+// 主頁 —— LINE 風格聊天介面
+// 這一版加了：進頁面先檢查有沒有登入，沒登入就導去 /login；右上角加登出按鈕
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../lib/supabase';
 
 const APP_TITLE = '我的第一個 AI 應用';
 const PLACEHOLDER = '輸入訊息⋯⋯';
 
 const LINE_GREEN = '#06C755';
 const BG = '#e5ede3';
-
-// localStorage 存的 key 名稱
 const STORAGE_KEY = 'chat-messages';
 
 export default function Home() {
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [user, setUser] = useState(null);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false); // 避免第一次渲染就把空陣列存回去蓋掉舊資料
+  const [loaded, setLoaded] = useState(false);
   const bottomRef = useRef(null);
 
-  // 網頁一打開，先從 localStorage 讀回之前的對話紀錄
+  // 進頁面先確認有沒有登入
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        router.replace('/login');
+      } else {
+        setUser(session.user);
+        setCheckingAuth(false);
+      }
+    });
+
+    // 登入狀態改變時（例如另一頁登出）也會同步
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.replace('/login');
+      } else {
+        setUser(session.user);
+      }
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, [router]);
+
+  // 讀回之前的對話紀錄（目前還是存瀏覽器，下一步才會改成存資料庫）
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) setMessages(JSON.parse(saved));
-    } catch (e) {
-      // 讀取失敗（例如資料壞掉）就當作沒有歷史紀錄，不影響使用
-    }
+    } catch (e) {}
     setLoaded(true);
   }, []);
 
-  // 每次對話有變化，就存回 localStorage
   useEffect(() => {
     if (!loaded) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    } catch (e) {
-      // 存不進去（例如容量滿了）就略過，不影響對話功能
-    }
+    } catch (e) {}
   }, [messages, loaded]);
 
   useEffect(() => {
@@ -84,6 +105,20 @@ export default function Home() {
     localStorage.removeItem(STORAGE_KEY);
   }
 
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace('/login');
+  }
+
+  // 還在確認登入狀態時，先不要顯示聊天畫面（避免閃一下又跳走）
+  if (checkingAuth) {
+    return (
+      <div style={S.outer}>
+        <div style={S.checking}>確認登入狀態中⋯⋯</div>
+      </div>
+    );
+  }
+
   return (
     <div style={S.outer}>
       <div style={S.phone}>
@@ -91,13 +126,18 @@ export default function Home() {
           <div style={S.headerAvatar}>AI</div>
           <div style={{ flex: 1 }}>
             <div style={S.headerTitle}>{APP_TITLE}</div>
-            <div style={S.headerSub}>{loading ? '正在輸入⋯⋯' : '線上'}</div>
+            <div style={S.headerSub}>
+              {loading ? '正在輸入⋯⋯' : user?.email || '線上'}
+            </div>
           </div>
           {messages.length > 0 && (
             <button onClick={handleClear} style={S.clearButton} title="清空對話">
               清空
             </button>
           )}
+          <button onClick={handleLogout} style={S.clearButton} title="登出">
+            登出
+          </button>
         </header>
 
         <main style={S.chatArea}>
@@ -126,180 +166,3 @@ export default function Home() {
             <div style={{ ...S.bubbleRow, justifyContent: 'flex-start' }}>
               <div style={{ ...S.bubble, ...S.bubbleAI, ...S.typing }}>
                 <span style={S.dot} />
-                <span style={{ ...S.dot, animationDelay: '0.15s' }} />
-                <span style={{ ...S.dot, animationDelay: '0.3s' }} />
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div style={S.error}>
-              <strong>出錯了：</strong> {error}
-            </div>
-          )}
-
-          <div ref={bottomRef} />
-        </main>
-
-        <form onSubmit={handleSubmit} style={S.inputBar}>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-            placeholder={PLACEHOLDER}
-            rows={1}
-            style={S.textarea}
-          />
-          <button type="submit" disabled={loading || !input.trim()} style={S.sendButton}>
-            送出
-          </button>
-        </form>
-      </div>
-
-      <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-          30% { transform: translateY(-4px); opacity: 1; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-const S = {
-  outer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100dvh',
-    background: '#d8d8d8',
-    fontFamily: 'system-ui, -apple-system, "Noto Sans TC", sans-serif',
-  },
-  phone: {
-    display: 'flex',
-    flexDirection: 'column',
-    width: '100%',
-    maxWidth: 430,
-    height: '100dvh',
-    maxHeight: 900,
-    background: BG,
-    boxShadow: '0 0 40px rgba(0,0,0,0.25)',
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '14px 16px',
-    background: LINE_GREEN,
-    color: '#fff',
-    flexShrink: 0,
-  },
-  headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.25)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 700,
-    fontSize: 14,
-  },
-  headerTitle: { fontWeight: 700, fontSize: 16 },
-  headerSub: { fontSize: 12, opacity: 0.85 },
-  clearButton: {
-    background: 'rgba(255,255,255,0.2)',
-    border: 'none',
-    color: '#fff',
-    fontSize: 12,
-    padding: '6px 10px',
-    borderRadius: 12,
-    cursor: 'pointer',
-  },
-  chatArea: {
-    flex: 1,
-    overflowY: 'auto',
-    padding: '16px 12px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-  },
-  emptyHint: { textAlign: 'center', color: '#8a9a86', marginTop: 40, fontSize: 14 },
-  bubbleRow: { display: 'flex' },
-  bubble: {
-    maxWidth: '75%',
-    padding: '10px 14px',
-    fontSize: 15,
-    lineHeight: 1.5,
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-    boxShadow: '0 1px 1px rgba(0,0,0,0.06)',
-  },
-  bubbleUser: {
-    background: LINE_GREEN,
-    color: '#fff',
-    borderRadius: '16px 16px 4px 16px',
-  },
-  bubbleAI: {
-    background: '#fff',
-    color: '#1a1a1a',
-    borderRadius: '16px 16px 16px 4px',
-  },
-  typing: { display: 'flex', gap: 4, padding: '14px 16px' },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: '50%',
-    background: '#aaa',
-    display: 'inline-block',
-    animation: 'bounce 1s infinite',
-  },
-  error: {
-    alignSelf: 'center',
-    marginTop: 8,
-    padding: '8px 14px',
-    background: '#fff5f5',
-    border: '1px solid #ffd0d0',
-    borderRadius: 10,
-    fontSize: 13,
-    color: '#a33',
-  },
-  inputBar: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    gap: 8,
-    padding: '10px 12px',
-    background: '#fff',
-    borderTop: '1px solid #ddd',
-    flexShrink: 0,
-  },
-  textarea: {
-    flex: 1,
-    resize: 'none',
-    border: '1px solid #ddd',
-    borderRadius: 20,
-    padding: '10px 16px',
-    fontSize: 15,
-    fontFamily: 'inherit',
-    maxHeight: 120,
-    outline: 'none',
-  },
-  sendButton: {
-    padding: '10px 20px',
-    fontSize: 14,
-    fontWeight: 600,
-    color: '#fff',
-    background: LINE_GREEN,
-    border: 'none',
-    borderRadius: 20,
-    cursor: 'pointer',
-    flexShrink: 0,
-  },
-};
