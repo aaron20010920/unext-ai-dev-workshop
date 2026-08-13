@@ -1,7 +1,8 @@
 'use client';
 
 // 這是你的網站首頁 —— LINE 風格的多輪聊天介面
-// 這一版加了「手機外框」：電腦上看起來像手機置中，手機上自然就是滿版
+// 這一版加了：對話紀錄存在瀏覽器的 localStorage，重新整理頁面不會消失
+// （限制：只存在「這一台瀏覽器」，換裝置或清瀏覽器資料就會不見）
 
 import { useState, useRef, useEffect } from 'react';
 
@@ -11,12 +12,37 @@ const PLACEHOLDER = '輸入訊息⋯⋯';
 const LINE_GREEN = '#06C755';
 const BG = '#e5ede3';
 
+// localStorage 存的 key 名稱
+const STORAGE_KEY = 'chat-messages';
+
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loaded, setLoaded] = useState(false); // 避免第一次渲染就把空陣列存回去蓋掉舊資料
   const bottomRef = useRef(null);
+
+  // 網頁一打開，先從 localStorage 讀回之前的對話紀錄
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setMessages(JSON.parse(saved));
+    } catch (e) {
+      // 讀取失敗（例如資料壞掉）就當作沒有歷史紀錄，不影響使用
+    }
+    setLoaded(true);
+  }, []);
+
+  // 每次對話有變化，就存回 localStorage
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch (e) {
+      // 存不進去（例如容量滿了）就略過，不影響對話功能
+    }
+  }, [messages, loaded]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -52,17 +78,26 @@ export default function Home() {
     }
   }
 
+  function handleClear() {
+    if (!confirm('確定要清空對話紀錄嗎？')) return;
+    setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
   return (
-    // 👇 外層灰底：讓手機框在電腦上有「桌面背景」的感覺
     <div style={S.outer}>
-      {/* 👇 手機外框：固定寬度、置中、圓角、陰影 —— 手機瀏覽時會自動變滿版 */}
       <div style={S.phone}>
         <header style={S.header}>
           <div style={S.headerAvatar}>AI</div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div style={S.headerTitle}>{APP_TITLE}</div>
             <div style={S.headerSub}>{loading ? '正在輸入⋯⋯' : '線上'}</div>
           </div>
+          {messages.length > 0 && (
+            <button onClick={handleClear} style={S.clearButton} title="清空對話">
+              清空
+            </button>
+          )}
         </header>
 
         <main style={S.chatArea}>
@@ -137,7 +172,6 @@ export default function Home() {
 }
 
 const S = {
-  // 外層：滿版灰底，讓手機框置中
   outer: {
     display: 'flex',
     justifyContent: 'center',
@@ -146,7 +180,6 @@ const S = {
     background: '#d8d8d8',
     fontFamily: 'system-ui, -apple-system, "Noto Sans TC", sans-serif',
   },
-  // 手機外框：電腦上固定寬度＋圓角＋陰影；手機上（螢幕本身就窄）自動滿版
   phone: {
     display: 'flex',
     flexDirection: 'column',
@@ -181,6 +214,15 @@ const S = {
   },
   headerTitle: { fontWeight: 700, fontSize: 16 },
   headerSub: { fontSize: 12, opacity: 0.85 },
+  clearButton: {
+    background: 'rgba(255,255,255,0.2)',
+    border: 'none',
+    color: '#fff',
+    fontSize: 12,
+    padding: '6px 10px',
+    borderRadius: 12,
+    cursor: 'pointer',
+  },
   chatArea: {
     flex: 1,
     overflowY: 'auto',
