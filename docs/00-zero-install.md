@@ -6,7 +6,36 @@
 
 適合：沒有付費 AI 助手、公司或學校筆電鎖權限、不想在自己電腦裝東西的人。
 
-你需要的只有兩個：**GitHub 帳號** ＋ **Groq key**（[console.groq.com](https://console.groq.com)，免費）。
+你需要的只有兩個：**GitHub 帳號** ＋ **Groq key**（免費，下面教你怎麼拿）。
+
+---
+
+## 步驟 0 — 拿一把 Groq key
+
+Groq 是今天 AI 的來源。你的網站要能回話，就要有這一把 key。
+
+1. 打開 [console.groq.com](https://console.groq.com)
+2. 登入 —— 可以直接用 **Google 或 GitHub 帳號**，不用另外註冊
+3. 左邊選單點 **API Keys**（或直接開 [console.groq.com/keys](https://console.groq.com/keys)）
+4. 按 **Create API Key** → 取一個看得懂的名字（例如 `unext-workshop`）→ 送出
+5. 它會顯示一串 `gsk_` 開頭的字 —— **馬上複製，貼到你的記事本**
+
+> 🔴 這串就是你的密碼。
+> **只有你本人可以把它貼進 Vercel 的環境變數。**
+> 不要貼進任何 AI 對話、不要 commit 進 GitHub、不要傳到群組。
+> 萬一貼錯地方了：回 API Keys 把那把刪掉，重新產一把就好。
+
+**免費方案的額度**（官方 rate limits 頁面，`llama-3.3-70b-versatile`）：
+
+| 限制 | 數字 |
+|---|---|
+| 每分鐘請求數（RPM） | 30 |
+| 每天請求數（RPD） | 1,000 |
+| 每分鐘 token（TPM） | 12,000 |
+| 每天 token（TPD） | 100,000 |
+
+今天一個人大概用掉幾十次，離上限很遠。
+真的看到 **429**，是碰到「每分鐘」那條，等一下再送就好 —— 不是你弄壞了。
 
 ---
 
