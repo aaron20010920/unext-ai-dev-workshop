@@ -1,49 +1,40 @@
 // 這支檔案就是「你的網站怎麼跟 AI 說話」的地方
 //
-// 前端（page.jsx）把使用者打的字送到這裡 → 這裡轉送給 Groq 的 AI → 把答案送回前端
-//
-// 為什麼不能讓前端直接打 Groq：API key 會被所有人看到（打開瀏覽器的原始碼就有）
-// 所以 key 只放在這一層（伺服器端），前端永遠看不到它
+// 現在支援多輪對話：前端把整段對話紀錄（messages 陣列）一起送過來，
+// 這支 route 接在 system prompt 後面，一起丟給 Groq
 
-// 👇 這就是你的 AI 的人格與規則。改這裡 = 換一個助手
-//
-// 為什麼放在這個檔（伺服器端）而不是前端：前端的東西任何人都看得到、也改得動。
-// 人格放前端的話，別人可以繞過你的規則，用你的 key 去問任何事
 const SYSTEM_PROMPT = `你是一位友善的助理。
 用繁體中文回答，講重點，不要長篇大論。
 不確定的事情老實說不知道，不要編。`;
 
-// 一次最多接受多長的輸入
-//
-// 為什麼要有這行：沒有它，任何人都能貼 10 萬字進來，一次就把你的免費額度燒一大塊。
-// 這叫 size cap，是最便宜的一道防線
-const MAX_INPUT_CHARS = 4000;
+// 一次最多留幾則歷史訊息 —— 太長的對話只留最近幾則，
+// 一方面省 token，一方面 Groq 免費額度每分鐘 token 數有限
+const MAX_HISTORY = 20;
 
-// ⚠️ 這支 API 沒有做「認證」—— 也就是說，任何知道你網址的人都可以用它
-//
-// 今天這樣是刻意的（加登入會讓課程做不完），但你要知道這件事：
-// 你的網址一貼出去，別人就能拿你的 key 去問 AI 問題
-//
-// 真的要給不特定的人用，最少要加這三樣（今天不做，但你該知道名字）：
-//   1. 限流 rate limit — 同一個人一分鐘最多幾次
-//   2. 認證 auth — 只有登入的人能用
-//   3. 用量上限 quota — 一天最多花多少
+// 單則訊息最多幾個字
+const MAX_MSG_CHARS = 2000;
+
 export async function POST(request) {
-  // 1. 拿到前端送來的東西
-  const { input } = await request.json();
+  const { messages } = await request.json();
 
-  if (!input || !input.trim()) {
+  if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ error: '沒有輸入內容' }, { status: 400 });
   }
 
-  if (input.length > MAX_INPUT_CHARS) {
-    return Response.json(
-      { error: `一次最多 ${MAX_INPUT_CHARS} 個字，你給了 ${input.length} 個` },
-      { status: 413 }
-    );
+  for (const m of messages) {
+    if (!m?.content || typeof m.content !== 'string') {
+      return Response.json({ error: '訊息格式錯誤' }, { status: 400 });
+    }
+    if (m.content.length > MAX_MSG_CHARS) {
+      return Response.json(
+        { error: `單則訊息最多 ${MAX_MSG_CHARS} 個字` },
+        { status: 413 }
+      );
+    }
   }
 
-  // 2. 拿 API key —— 這個值來自 Vercel 的環境變數，不在程式碼裡
+  const trimmed = messages.slice(-MAX_HISTORY);
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return Response.json(
@@ -52,25 +43,19 @@ export async function POST(request) {
     );
   }
 
-  // 3. 呼叫 Groq
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        // ⚠️ 這行不能拿掉 —— 少了 User-Agent，Groq 會回 403
         'User-Agent': 'unext-ai-dev-workshop/1.0',
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages: [
-          {
-            role: 'system',
-            // 這段就是你的「AI 助手人格」。改這裡 = 換一個助手
-            content: SYSTEM_PROMPT,
-          },
-          { role: 'user', content: input },
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...trimmed.map((m) => ({ role: m.role, content: m.content })),
         ],
         max_completion_tokens: 1200,
       }),
