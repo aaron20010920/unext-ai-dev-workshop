@@ -13,7 +13,8 @@
 
 | 你要做的事 | 去哪裡 |
 |---|---|
-| 🎯 **把東西做上線** | [QUICKSTART.md](QUICKSTART.md) —— 六張工單，各附驗收條件 |
+| 🎯 **把東西做上線（有付費 AI 助手）** | [QUICKSTART.md](QUICKSTART.md) —— 六張工單，各附驗收條件 |
+| 🌐 **把東西做上線（零安裝）** | [docs/00-zero-install.md](docs/00-zero-install.md) —— 全程瀏覽器，電腦什麼都不用裝 |
 | 🤖 **專案內建助教** | [AGENTS.md](AGENTS.md) —— Codex 開啟專案時自動讀取，知道這門課的目標與規則 |
 | 📖 **今天用到的每一支 prompt** | [docs/02-prompts.md](docs/02-prompts.md) |
 | 📋 **規格範本（A–F 六格 review）** | [SPEC-TEMPLATE.md](SPEC-TEMPLATE.md) |
