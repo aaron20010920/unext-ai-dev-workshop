@@ -1,7 +1,8 @@
 'use client';
 
 // 主頁 —— LINE 風格聊天介面
-// 這一版加了：進頁面先檢查有沒有登入，沒登入就導去 /login；右上角加登出按鈕
+// 這一版：訊息不再存 localStorage，改存進 Supabase 的 messages 表
+// 每則訊息都綁 user_id，RLS 會確保你只讀得到自己的訊息
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,18 +13,17 @@ const PLACEHOLDER = '輸入訊息⋯⋯';
 
 const LINE_GREEN = '#06C755';
 const BG = '#e5ede3';
-const STORAGE_KEY = 'chat-messages';
 
 export default function Home() {
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState(null);
 
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]); // [{ id, role, content }]
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false);
   const bottomRef = useRef(null);
 
   // 進頁面先確認有沒有登入
@@ -37,7 +37,6 @@ export default function Home() {
       }
     });
 
-    // 登入狀態改變時（例如另一頁登出）也會同步
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         router.replace('/login');
@@ -49,60 +48,105 @@ export default function Home() {
     return () => listener.subscription.unsubscribe();
   }, [router]);
 
-  // 讀回之前的對話紀錄（目前還是存瀏覽器，下一步才會改成存資料庫）
+  // 登入確認完成後，去資料庫讀回這個使用者之前的對話紀錄
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setMessages(JSON.parse(saved));
-    } catch (e) {}
-    setLoaded(true);
-  }, []);
+    if (!user) return;
 
-  useEffect(() => {
-    if (!loaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    } catch (e) {}
-  }, [messages, loaded]);
+    async function loadHistory() {
+      setLoadingHistory(true);
+      const { data, error: fetchError } = await supabase
+        .from('messages')
+        .select('id, role, content')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (fetchError) {
+        setError(`讀取歷史紀錄失敗：${fetchError.message}`);
+      } else {
+        setMessages(data || []);
+      }
+      setLoadingHistory(false);
+    }
+
+    loadHistory();
+  }, [user]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  }, [messages, sending]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || sending || !user) return;
 
-    const nextMessages = [...messages, { role: 'user', content: text }];
-    setMessages(nextMessages);
     setInput('');
     setError('');
-    setLoading(true);
+    setSending(true);
 
+    // 1. 把使用者的訊息存進資料庫，同時顯示在畫面上
+    const { data: userMsg, error: insertError } = await supabase
+      .from('messages')
+      .insert({ user_id: user.id, role: 'user', content: text })
+      .select('id, role, content')
+      .single();
+
+    if (insertError) {
+      setError(`存訊息失敗：${insertError.message}`);
+      setSending(false);
+      return;
+    }
+
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
+
+    // 2. 把整段對話紀錄送給 AI
     try {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({
+          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+        }),
       });
       const data = await res.json();
+
       if (data.error) {
         setError(data.error);
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.output }]);
+        // 3. 把 AI 的回覆也存進資料庫
+        const { data: aiMsg, error: aiInsertError } = await supabase
+          .from('messages')
+          .insert({ user_id: user.id, role: 'assistant', content: data.output })
+          .select('id, role, content')
+          .single();
+
+        if (aiInsertError) {
+          setError(`存 AI 回覆失敗：${aiInsertError.message}`);
+        } else {
+          setMessages((prev) => [...prev, aiMsg]);
+        }
       }
     } catch (err) {
       setError(`送出失敗：${err.message}`);
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   }
 
-  function handleClear() {
-    if (!confirm('確定要清空對話紀錄嗎？')) return;
-    setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
+  async function handleClear() {
+    if (!confirm('確定要清空對話紀錄嗎？這會刪掉資料庫裡的紀錄，無法復原。')) return;
+
+    const { error: deleteError } = await supabase
+      .from('messages')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (deleteError) {
+      setError(`清空失敗：${deleteError.message}`);
+    } else {
+      setMessages([]);
+    }
   }
 
   async function handleLogout() {
@@ -110,7 +154,6 @@ export default function Home() {
     router.replace('/login');
   }
 
-  // 還在確認登入狀態時，先不要顯示聊天畫面（避免閃一下又跳走）
   if (checkingAuth) {
     return (
       <div style={S.outer}>
@@ -127,7 +170,7 @@ export default function Home() {
           <div style={{ flex: 1 }}>
             <div style={S.headerTitle}>{APP_TITLE}</div>
             <div style={S.headerSub}>
-              {loading ? '正在輸入⋯⋯' : user?.email || '線上'}
+              {sending ? '正在輸入⋯⋯' : user?.email || '線上'}
             </div>
           </div>
           {messages.length > 0 && (
@@ -141,11 +184,14 @@ export default function Home() {
         </header>
 
         <main style={S.chatArea}>
-          {messages.length === 0 && <div style={S.emptyHint}>開始對話吧</div>}
+          {loadingHistory && <div style={S.emptyHint}>讀取對話紀錄中⋯⋯</div>}
+          {!loadingHistory && messages.length === 0 && (
+            <div style={S.emptyHint}>開始對話吧</div>
+          )}
 
-          {messages.map((m, i) => (
+          {messages.map((m) => (
             <div
-              key={i}
+              key={m.id}
               style={{
                 ...S.bubbleRow,
                 justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
@@ -162,7 +208,7 @@ export default function Home() {
             </div>
           ))}
 
-          {loading && (
+          {sending && (
             <div style={{ ...S.bubbleRow, justifyContent: 'flex-start' }}>
               <div style={{ ...S.bubble, ...S.bubbleAI, ...S.typing }}>
                 <span style={S.dot} />
@@ -195,7 +241,7 @@ export default function Home() {
             rows={1}
             style={S.textarea}
           />
-          <button type="submit" disabled={loading || !input.trim()} style={S.sendButton}>
+          <button type="submit" disabled={sending || !input.trim()} style={S.sendButton}>
             送出
           </button>
         </form>
