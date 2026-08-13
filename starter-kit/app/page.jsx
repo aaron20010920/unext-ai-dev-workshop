@@ -1,7 +1,8 @@
 'use client';
 
-// 這是你的網站首頁 —— LINE 風格多輪聊天，對話紀錄存進 Supabase 資料庫
-// device_id 存在 localStorage，用來標記「這是同一台裝置」（不是真正的登入身分）
+// 這是你的網站首頁 —— LINE 風格的多輪聊天介面
+// 這一版加了：對話紀錄存在瀏覽器的 localStorage，重新整理頁面不會消失
+// （限制：只存在「這一台瀏覽器」，換裝置或清瀏覽器資料就會不見）
 
 import { useState, useRef, useEffect } from 'react';
 
@@ -11,53 +12,41 @@ const PLACEHOLDER = '輸入訊息⋯⋯';
 const LINE_GREEN = '#06C755';
 const BG = '#e5ede3';
 
-const DEVICE_ID_KEY = 'chat-device-id';
-
-function getDeviceId() {
-  let id = localStorage.getItem(DEVICE_ID_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(DEVICE_ID_KEY, id);
-  }
-  return id;
-}
+// localStorage 存的 key 名稱
+const STORAGE_KEY = 'chat-messages';
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [deviceId, setDeviceId] = useState(null);
+  const [loaded, setLoaded] = useState(false); // 避免第一次渲染就把空陣列存回去蓋掉舊資料
   const bottomRef = useRef(null);
 
+  // 網頁一打開，先從 localStorage 讀回之前的對話紀錄
   useEffect(() => {
-    const id = getDeviceId();
-    setDeviceId(id);
-
-    fetch(`/api/messages?device_id=${encodeURIComponent(id)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.messages) {
-          setMessages(data.messages.map((m) => ({ role: m.role, content: m.content })));
-        }
-      })
-      .catch(() => {});
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setMessages(JSON.parse(saved));
+    } catch (e) {
+      // 讀取失敗（例如資料壞掉）就當作沒有歷史紀錄，不影響使用
+    }
+    setLoaded(true);
   }, []);
+
+  // 每次對話有變化，就存回 localStorage
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch (e) {
+      // 存不進去（例如容量滿了）就略過，不影響對話功能
+    }
+  }, [messages, loaded]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
-
-  async function saveMessage(role, content) {
-    if (!deviceId) return;
-    try {
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device_id: deviceId, role, content }),
-      });
-    } catch (e) {}
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -69,7 +58,6 @@ export default function Home() {
     setInput('');
     setError('');
     setLoading(true);
-    saveMessage('user', text);
 
     try {
       const res = await fetch('/api/ai', {
@@ -82,7 +70,6 @@ export default function Home() {
         setError(data.error);
       } else {
         setMessages((prev) => [...prev, { role: 'assistant', content: data.output }]);
-        saveMessage('assistant', data.output);
       }
     } catch (err) {
       setError(`送出失敗：${err.message}`);
@@ -92,8 +79,9 @@ export default function Home() {
   }
 
   function handleClear() {
-    if (!confirm('確定要清空對話紀錄嗎？（資料庫裡的也會留著，只是畫面清空）')) return;
+    if (!confirm('確定要清空對話紀錄嗎？')) return;
     setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
   }
 
   return (
@@ -106,7 +94,7 @@ export default function Home() {
             <div style={S.headerSub}>{loading ? '正在輸入⋯⋯' : '線上'}</div>
           </div>
           {messages.length > 0 && (
-            <button onClick={handleClear} style={S.clearButton} title="清空畫面">
+            <button onClick={handleClear} style={S.clearButton} title="清空對話">
               清空
             </button>
           )}
