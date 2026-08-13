@@ -1,38 +1,54 @@
 'use client';
 
-// 這是你的網站首頁
+// 這是你的網站首頁 —— 現在改成 LINE 風格的多輪聊天介面
 //
-// 它現在長得很樸素，那是刻意的 —— 你要把它改成「你的那個應用」
-// 改法：把這整個檔案貼給 Codex，跟它說你要做什麼（見 repo 根目錄的 SPEC-TEMPLATE.md）
+// 跟之前「一次問答」的差別：現在會記住整個對話紀錄（messages 陣列），
+// 每次送出都把整段歷史一起送給 AI，所以你可以一直追問下去
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-// 👇 改這兩行就換了一個應用（先改這裡，再改介面）
-// AI 的人格不在這裡 —— 它在 app/api/ai/route.js 的 SYSTEM_PROMPT（伺服器端）
+// 👇 改這兩行就換了一個應用
 const APP_TITLE = '我的第一個 AI 應用';
-const PLACEHOLDER = '在這裡輸入你要問的東西⋯⋯';
+const PLACEHOLDER = '輸入訊息⋯⋯';
+
+// LINE 風格配色
+const LINE_GREEN = '#06C755';
+const BG = '#e5ede3';
 
 export default function Home() {
+  const [messages, setMessages] = useState([]); // [{ role: 'user' | 'assistant', content: string }]
   const [input, setInput] = useState('');
-  const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
+    const text = input.trim();
+    if (!text || loading) return;
+
+    const nextMessages = [...messages, { role: 'user', content: text }];
+    setMessages(nextMessages);
+    setInput('');
     setError('');
-    setOutput('');
+    setLoading(true);
 
     try {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ messages: nextMessages }),
       });
       const data = await res.json();
-      if (data.error) setError(data.error);
-      else setOutput(data.output);
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setMessages((prev) => [...prev, { role: 'assistant', content: data.output }]);
+      }
     } catch (err) {
       setError(`送出失敗：${err.message}`);
     } finally {
@@ -41,107 +57,199 @@ export default function Home() {
   }
 
   return (
-    <main style={S.main}>
-      <h1 style={S.h1}>{APP_TITLE}</h1>
-      <p style={S.sub}>輸入內容 → 按送出 → AI 幫你處理</p>
+    <div style={S.page}>
+      <header style={S.header}>
+        <div style={S.headerAvatar}>AI</div>
+        <div>
+          <div style={S.headerTitle}>{APP_TITLE}</div>
+          <div style={S.headerSub}>{loading ? '正在輸入⋯⋯' : '線上'}</div>
+        </div>
+      </header>
 
-      <form onSubmit={handleSubmit}>
+      <main style={S.chatArea}>
+        {messages.length === 0 && (
+          <div style={S.emptyHint}>開始對話吧</div>
+        )}
+
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            style={{
+              ...S.bubbleRow,
+              justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
+            }}
+          >
+            <div
+              style={{
+                ...S.bubble,
+                ...(m.role === 'user' ? S.bubbleUser : S.bubbleAI),
+              }}
+            >
+              {m.content}
+            </div>
+          </div>
+        ))}
+
+        {loading && (
+          <div style={{ ...S.bubbleRow, justifyContent: 'flex-start' }}>
+            <div style={{ ...S.bubble, ...S.bubbleAI, ...S.typing }}>
+              <span style={S.dot} />
+              <span style={{ ...S.dot, animationDelay: '0.15s' }} />
+              <span style={{ ...S.dot, animationDelay: '0.3s' }} />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div style={S.error}>
+            <strong>出錯了：</strong> {error}
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </main>
+
+      <form onSubmit={handleSubmit} style={S.inputBar}>
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit(e);
+            }
+          }}
           placeholder={PLACEHOLDER}
-          rows={6}
+          rows={1}
           style={S.textarea}
         />
-        <button type="submit" disabled={loading || !input.trim()} style={S.button}>
-          {loading ? 'AI 正在想⋯⋯' : '送出'}
+        <button type="submit" disabled={loading || !input.trim()} style={S.sendButton}>
+          送出
         </button>
       </form>
 
-      {error && (
-        <div style={S.error}>
-          <strong>出錯了：</strong> {error}
-          <div style={S.errorHint}>看 repo 的 docs/03-troubleshooting.md，裡面有每一種錯誤怎麼修</div>
-        </div>
-      )}
-
-      {output && (
-        <section style={S.result}>
-          <div style={S.resultLabel}>AI 的回覆</div>
-          <div style={S.resultBody}>{output}</div>
-        </section>
-      )}
-
-      <footer style={S.footer}>
-        改這個頁面：把 <code>app/page.jsx</code> 貼給 Codex，跟它說你要什麼
-        <br />
-        換 AI 的個性：改 <code>app/api/ai/route.js</code> 的 <code>SYSTEM_PROMPT</code>
-      </footer>
-    </main>
+      <style>{`
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-4px); opacity: 1; }
+        }
+      `}</style>
+    </div>
   );
 }
 
-// 樣式集中放這裡，改配色只改這一塊
 const S = {
-  main: {
-    maxWidth: 720,
-    margin: '0 auto',
-    padding: '3rem 1.5rem 5rem',
+  page: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100dvh',
+    background: BG,
     fontFamily: 'system-ui, -apple-system, "Noto Sans TC", sans-serif',
-    color: '#1a1a1a',
-    lineHeight: 1.7,
   },
-  h1: { fontSize: '2rem', marginBottom: '0.5rem' },
-  sub: { color: '#666', marginBottom: '2rem', fontSize: '1.05rem' },
-  textarea: {
-    width: '100%',
-    padding: '1rem',
-    fontSize: '1.05rem',
-    fontFamily: 'inherit',
-    border: '1px solid #ddd',
-    borderRadius: 10,
-    resize: 'vertical',
-    boxSizing: 'border-box',
-  },
-  button: {
-    marginTop: '1rem',
-    padding: '0.8rem 2rem',
-    fontSize: '1.05rem',
-    fontWeight: 600,
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    padding: '14px 16px',
+    background: LINE_GREEN,
     color: '#fff',
-    background: '#1a1a1a',
-    border: 'none',
-    borderRadius: 10,
-    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.25)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 700,
+    fontSize: 14,
+  },
+  headerTitle: { fontWeight: 700, fontSize: 16 },
+  headerSub: { fontSize: 12, opacity: 0.85 },
+  chatArea: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '16px 12px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  emptyHint: {
+    textAlign: 'center',
+    color: '#8a9a86',
+    marginTop: 40,
+    fontSize: 14,
+  },
+  bubbleRow: { display: 'flex' },
+  bubble: {
+    maxWidth: '75%',
+    padding: '10px 14px',
+    fontSize: 15,
+    lineHeight: 1.5,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    boxShadow: '0 1px 1px rgba(0,0,0,0.06)',
+  },
+  bubbleUser: {
+    background: LINE_GREEN,
+    color: '#fff',
+    borderRadius: '16px 16px 4px 16px',
+  },
+  bubbleAI: {
+    background: '#fff',
+    color: '#1a1a1a',
+    borderRadius: '16px 16px 16px 4px',
+  },
+  typing: { display: 'flex', gap: 4, padding: '14px 16px' },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    background: '#aaa',
+    display: 'inline-block',
+    animation: 'bounce 1s infinite',
   },
   error: {
-    marginTop: '1.5rem',
-    padding: '1rem 1.2rem',
+    alignSelf: 'center',
+    marginTop: 8,
+    padding: '8px 14px',
     background: '#fff5f5',
     border: '1px solid #ffd0d0',
     borderRadius: 10,
-    fontSize: '0.98rem',
+    fontSize: 13,
+    color: '#a33',
   },
-  errorHint: { marginTop: '0.5rem', color: '#888', fontSize: '0.9rem' },
-  result: {
-    marginTop: '2rem',
-    padding: '1.2rem 1.4rem',
-    background: '#fafaf8',
-    border: '1px solid #eee',
-    borderRadius: 12,
+  inputBar: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    gap: 8,
+    padding: '10px 12px',
+    background: '#fff',
+    borderTop: '1px solid #ddd',
+    flexShrink: 0,
   },
-  resultLabel: {
-    fontSize: '0.85rem',
-    color: '#888',
-    marginBottom: '0.6rem',
-    letterSpacing: '0.05em',
+  textarea: {
+    flex: 1,
+    resize: 'none',
+    border: '1px solid #ddd',
+    borderRadius: 20,
+    padding: '10px 16px',
+    fontSize: 15,
+    fontFamily: 'inherit',
+    maxHeight: 120,
+    outline: 'none',
   },
-  resultBody: { whiteSpace: 'pre-wrap', fontSize: '1.05rem' },
-  footer: {
-    marginTop: '3rem',
-    paddingTop: '1.5rem',
-    borderTop: '1px solid #eee',
-    color: '#888',
-    fontSize: '0.9rem',
+  sendButton: {
+    padding: '10px 20px',
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#fff',
+    background: LINE_GREEN,
+    border: 'none',
+    borderRadius: 20,
+    cursor: 'pointer',
+    flexShrink: 0,
   },
 };
