@@ -1,22 +1,18 @@
 'use client';
 
-// 這是你的網站首頁 —— 現在改成 LINE 風格的多輪聊天介面
-//
-// 跟之前「一次問答」的差別：現在會記住整個對話紀錄（messages 陣列），
-// 每次送出都把整段歷史一起送給 AI，所以你可以一直追問下去
+// 這是你的網站首頁 —— LINE 風格的多輪聊天介面
+// 這一版加了「手機外框」：電腦上看起來像手機置中，手機上自然就是滿版
 
 import { useState, useRef, useEffect } from 'react';
 
-// 👇 改這兩行就換了一個應用
 const APP_TITLE = '我的第一個 AI 應用';
 const PLACEHOLDER = '輸入訊息⋯⋯';
 
-// LINE 風格配色
 const LINE_GREEN = '#06C755';
 const BG = '#e5ede3';
 
 export default function Home() {
-  const [messages, setMessages] = useState([]); // [{ role: 'user' | 'assistant', content: string }]
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,76 +53,78 @@ export default function Home() {
   }
 
   return (
-    <div style={S.page}>
-      <header style={S.header}>
-        <div style={S.headerAvatar}>AI</div>
-        <div>
-          <div style={S.headerTitle}>{APP_TITLE}</div>
-          <div style={S.headerSub}>{loading ? '正在輸入⋯⋯' : '線上'}</div>
-        </div>
-      </header>
+    // 👇 外層灰底：讓手機框在電腦上有「桌面背景」的感覺
+    <div style={S.outer}>
+      {/* 👇 手機外框：固定寬度、置中、圓角、陰影 —— 手機瀏覽時會自動變滿版 */}
+      <div style={S.phone}>
+        <header style={S.header}>
+          <div style={S.headerAvatar}>AI</div>
+          <div>
+            <div style={S.headerTitle}>{APP_TITLE}</div>
+            <div style={S.headerSub}>{loading ? '正在輸入⋯⋯' : '線上'}</div>
+          </div>
+        </header>
 
-      <main style={S.chatArea}>
-        {messages.length === 0 && (
-          <div style={S.emptyHint}>開始對話吧</div>
-        )}
+        <main style={S.chatArea}>
+          {messages.length === 0 && <div style={S.emptyHint}>開始對話吧</div>}
 
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              ...S.bubbleRow,
-              justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
-            }}
-          >
+          {messages.map((m, i) => (
             <div
+              key={i}
               style={{
-                ...S.bubble,
-                ...(m.role === 'user' ? S.bubbleUser : S.bubbleAI),
+                ...S.bubbleRow,
+                justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
               }}
             >
-              {m.content}
+              <div
+                style={{
+                  ...S.bubble,
+                  ...(m.role === 'user' ? S.bubbleUser : S.bubbleAI),
+                }}
+              >
+                {m.content}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {loading && (
-          <div style={{ ...S.bubbleRow, justifyContent: 'flex-start' }}>
-            <div style={{ ...S.bubble, ...S.bubbleAI, ...S.typing }}>
-              <span style={S.dot} />
-              <span style={{ ...S.dot, animationDelay: '0.15s' }} />
-              <span style={{ ...S.dot, animationDelay: '0.3s' }} />
+          {loading && (
+            <div style={{ ...S.bubbleRow, justifyContent: 'flex-start' }}>
+              <div style={{ ...S.bubble, ...S.bubbleAI, ...S.typing }}>
+                <span style={S.dot} />
+                <span style={{ ...S.dot, animationDelay: '0.15s' }} />
+                <span style={{ ...S.dot, animationDelay: '0.3s' }} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {error && (
-          <div style={S.error}>
-            <strong>出錯了：</strong> {error}
-          </div>
-        )}
+          {error && (
+            <div style={S.error}>
+              <strong>出錯了：</strong> {error}
+            </div>
+          )}
 
-        <div ref={bottomRef} />
-      </main>
+          <div ref={bottomRef} />
+        </main>
 
-      <form onSubmit={handleSubmit} style={S.inputBar}>
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
-          placeholder={PLACEHOLDER}
-          rows={1}
-          style={S.textarea}
-        />
-        <button type="submit" disabled={loading || !input.trim()} style={S.sendButton}>
-          送出
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} style={S.inputBar}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+            placeholder={PLACEHOLDER}
+            rows={1}
+            style={S.textarea}
+          />
+          <button type="submit" disabled={loading || !input.trim()} style={S.sendButton}>
+            送出
+          </button>
+        </form>
+      </div>
 
       <style>{`
         @keyframes bounce {
@@ -139,12 +137,27 @@ export default function Home() {
 }
 
 const S = {
-  page: {
+  // 外層：滿版灰底，讓手機框置中
+  outer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100dvh',
+    background: '#d8d8d8',
+    fontFamily: 'system-ui, -apple-system, "Noto Sans TC", sans-serif',
+  },
+  // 手機外框：電腦上固定寬度＋圓角＋陰影；手機上（螢幕本身就窄）自動滿版
+  phone: {
     display: 'flex',
     flexDirection: 'column',
+    width: '100%',
+    maxWidth: 430,
     height: '100dvh',
+    maxHeight: 900,
     background: BG,
-    fontFamily: 'system-ui, -apple-system, "Noto Sans TC", sans-serif',
+    boxShadow: '0 0 40px rgba(0,0,0,0.25)',
+    borderRadius: 24,
+    overflow: 'hidden',
   },
   header: {
     display: 'flex',
@@ -176,12 +189,7 @@ const S = {
     flexDirection: 'column',
     gap: 8,
   },
-  emptyHint: {
-    textAlign: 'center',
-    color: '#8a9a86',
-    marginTop: 40,
-    fontSize: 14,
-  },
+  emptyHint: { textAlign: 'center', color: '#8a9a86', marginTop: 40, fontSize: 14 },
   bubbleRow: { display: 'flex' },
   bubble: {
     maxWidth: '75%',
