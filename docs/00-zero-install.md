@@ -52,9 +52,18 @@ Groq 是今天 AI 的來源。你的網站要能回話，就要有這一把 key�
 
 1. 到 [vercel.com/new](https://vercel.com/new) → 用 **GitHub 登入**（不用另外註冊）
 2. **Import Git Repository** → 選你剛 fork 的那個
-3. 🔴 **Root Directory 選 `starter-kit`**
-   —— 這是這條路唯一會死的地方。漏了它，部署會顯示「成功」、也給你網址，
-   但打開是一頁 404，而且沒有任何錯誤訊息指向原因
+3. 🔴 **Root Directory 改成 `starter-kit`** —— 這條路唯一會死的地方
+
+   **在哪裡選**：Import 之後那個設定畫面，專案名稱下面有一列 **Root Directory**，
+   右邊有 **Edit** → 點進去選資料夾 `starter-kit` → **Continue**。
+
+   漏了它會怎樣：程式碼在 `starter-kit/` 裡面，repo 根目錄沒有 `package.json`，
+   Vercel 在根目錄找不到東西可以裝 → build 失敗，或是部署「成功」給你網址、
+   打開卻是一頁 404，而且沒有任何錯誤訊息指向原因。
+
+   > 已經建好專案才發現漏了：不用重來。到該專案
+   > **Settings → Build and Deployment → Root Directory** 填 `starter-kit` → Save →
+   > 回 **Deployments → ⋯ → Redeploy**。
 4. 展開 **Environment Variables** → 新增
    - Name：`GROQ_API_KEY`（一字不差）
    - Value：貼上你從 console.groq.com 拿到的 key
